@@ -1,0 +1,94 @@
+# IVC Protocol Documentation
+
+The Inter-Virtual-Channel (IVC) Protocol is a lightweight routing and event broadcasting system that allows diverse networks, channels, and users to communicate using URIs and modes. 
+
+## 1. Channel Types
+
+Channels are identified by specific prefix symbols in their URI:
+
+| Prefix | Type | Example | Description |
+|---|---|---|---|
+| `#` | **Standard Channel** | `ivc://#general` | Public or private group communication spaces. |
+| `@` | **User Channel** | `ivc://@jakedot` | Direct, private communication streams addressed to a specific user. |
+| `$` | **Operator Channel** | `ivc://$ops` | Secure channels requiring Operator (+o) privileges, featuring EE2E encryption. |
+| `§` | **Metadata Channel** | `ivc://§server-logs` | Broadcast channels used for automated metadata, logs, and system events. |
+| `∆` | **Stats Channel** | `ivc://∆uptime` | Real-time streams outputting telemetry and operational statistics. |
+| `~` | **Usage Profile** | `ivc://~jakedot` | Read-only profile cards displaying a user's usage patterns and statistics. |
+| `+` | **Server Modes** | `ivc://+xyz` | Applies global configuration changes (modes) directly to the server. |
+
+## 2. Channel & User Modes
+
+Modes can be appended to any channel or user URI to apply temporary modifiers or denote privileges. They are represented by appending `+` followed by letters (e.g., `+xyz`). Modes can be removed or swapped using `-` (e.g., `+xyz-a`).
+
+### Example Mode Modifiers:
+* `+o`: Operator Privileges (required for `$oper` channels)
+* `+a`: Admin Privileges (required for server-wide configurations like `GET /+`)
+* `+d`: Data-Only Mode (strips UI wrapping and expects raw payload)
+* `+m`: Moderated Mode (only approved senders can post)
+* `+i`: Invite-Only (prevents standard connection)
+
+### Mode Combinations & Scope
+
+Modes can be applied at three different scopes in the IVC network:
+
+#### 1. Per-User Modes
+Applied to a user's address, denoting their global privileges across the network.
+* **Example:** `ivc://@jakedot+oa` (User `jakedot` possesses global Operator `o` and Admin `a` privileges).
+
+#### 2. Per-Channel Modes
+Applied to a channel's address, enforcing rules or states for all participants within that channel.
+* **Example:** `ivc://#announcements+mi` (The `#announcements` channel is Moderated `m` and Invite-Only `i`).
+
+#### 3. Per-Channel/User Combinations (Contextual Privileges)
+When a user targets a channel, their global modes might be overridden or augmented by contextual modes specific to that channel session. 
+* **Example Use Case:** A user is not a global admin but is granted `+o` exclusively for `#community`.
+
+## 3. Server Configuration Endpoint (GET /+)
+
+The server exposes a special root-level `+` endpoint (`GET /+`) which dumps the current active modes and statistics of the server in JSON format.
+
+**Security:** This endpoint requires the requester to hold Admin (`+a`) privileges.
+
+* **Request Format:** 
+  `GET /+`
+* **Authorization:** 
+  Header: `X-IVC-User: @username+a` 
+  *(The user URI must explicitly include the `+a` mode).*
+
+
+## 4. Global Server Mode Modification Endpoints
+
+Administrators can dynamically modify global server modes (which apply globally to the entire IVC Node) via the HTTP REST API. Mode updates are immediately broadcast over the SSE network to all connected clients.
+
+**Security:** These endpoints strictly require the requester to hold Admin (`+a`) privileges.
+
+* **Add Modes:** `PUT /+[modes]`
+* **Remove Modes:** `PUT /-[modes]` (or `DELETE /+[modes]`)
+* **Headers:** `X-IVC-User: @username+a`
+* **Example:** `curl -X PUT -H "X-IVC-User: @jakedot+oa" https://server.com/+x` (Applies mode +x globally to the server).
+
+## 5. Target Mode Modification Endpoints
+
+Administrators and Operators can dynamically modify modes on specific channels or users via the HTTP REST API. Mode updates are immediately broadcast over the SSE network to all connected clients.
+
+**Security:** These endpoints require the requester to hold Operator (`+o`) or Admin (`+a`) privileges.
+
+* **Add Modes:** `PUT /+[modes]/[target]`
+* **Remove Modes:** `PUT /-[modes]/[target]` (or `DELETE /+[modes]/[target]`)
+* **Headers:** `X-IVC-User: @username+o`
+* **Example:** `curl -X PUT -H "X-IVC-User: @jakedot+oa" https://server.com/+m/%23general` (Moderates the `#general` channel).
+
+## 6. Perceived Location Tracking (Location Header)
+
+The IVC network automatically tracks and defines a user's footprint across the system. Every API response from the server includes an HTTP `Location:` header detailing the requester's context.
+
+* **Header Format:** `Location: user@remote#server.ivc.cx/#c1,c2,...`
+* **Example Output:** `Location: jakedot+oa@127.0.0.1#ivc.local/#general`
+
+## 7. Server-Sent Events (SSE) Payloads
+
+The live SSE network streams structured JSON payloads. Clients receive real-time updates for:
+* **Posts:** `{"type": "ivc_post", "channel": "c", "payload": "..."}`
+* **Commands:** `{"type": "ivc_command", "command": "NOTIFY ..."}`
+* **Server Modes:** `{"type": "ivc_server_mode", "modes": "xyz"}`
+* **Target Modes:** `{"type": "ivc_mode_update", "action": "add", "modes": "m", "target": "#general"}`

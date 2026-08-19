@@ -1,11 +1,18 @@
-<div align="center">
+# IVC Notification Server & Dashboard
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A comprehensive full-stack application operating as an Inter-Virtual-Channel (IVC) Node. It provides a real-time event-driven network, desktop notifications, server mode management, and an automated email dispatch engine integrated with Gmail.
 
-  <h1>Built with AI Studio</h2>
+## Features
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- **IVC Protocol Implementation:** Deep integration of the custom `ivc://` protocol supporting Channels (`#`), Users (`@`), Operators (`$`), Metadata (`§`), Stats (`∆`), and Usage Profiles (`~`).
+- **Live SSE Network:** Real-time bi-directional streaming via Server-Sent Events (SSE). Broadcasts message posts, command triggers, and mode updates directly to connected clients.
+- **Desktop Notifications:** Hooks into native OS notifications to alert users of specific events or when Operator/Admin actions occur.
+- **Dynamic Mode Management:** Assign privileges (`+o`, `+a`) and contextual modifiers (`+m`, `+i`) on a global, per-user, or per-channel basis.
+- **Gmail Automation Engine:** Dispatch alerts, command-based messages, and scheduled tasks directly using Google Workspace OAuth.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Architecture
 
-</div>
+- **Frontend:** React 19, Vite, Tailwind CSS, Lucide Icons, Recharts (for telemetry/stats).
+- **Backend:** Express.js + Node.js (running in a unified `server.ts` entrypoint).
+- **Authentication:** Firebase Authentication for UI logins + Google API (`gmail.send` scope).
+- **Security:** Strict header-based privilege enforcement (`X-IVC-User`).

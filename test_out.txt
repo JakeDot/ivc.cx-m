@@ -1,0 +1,7 @@
+ivc://jakedot.net/#channel -> { host: 'jakedot.net', pathname: '/', hash: '#channel', user: '' }
+ivc://jakedot.net/@user -> { host: 'jakedot.net', pathname: '/@user', hash: '', user: '' }
+ivc://jakedot.net/§channel -> { host: 'jakedot.net', pathname: '/%C2%A7channel', hash: '', user: '' }
+ivc://jakedot.net/#channel+d -> { host: 'jakedot.net', pathname: '/', hash: '#channel+d', user: '' }
+ivc://@user -> { host: 'user', pathname: '/', hash: '', user: '' }
+ivc://#channel -> error Invalid URL
+ivc://§channel -> { host: 'xn--channel-6ia', pathname: '/', hash: '', user: '' }

@@ -1,0 +1,90 @@
+{
+  host: 'jakedot.net',
+  channel: 'channel',
+  channelType: 'standard',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: 'jakedot.net',
+  channel: 'user',
+  channelType: 'user',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: 'jakedot.net',
+  channel: 'channel',
+  channelType: 'metadata',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: 'jakedot.net',
+  channel: 'channel',
+  channelType: 'standard',
+  dataMode: true,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: '',
+  channel: 'user',
+  channelType: 'user',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: '',
+  channel: 'channel',
+  channelType: 'standard',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: '',
+  channel: 'channel',
+  channelType: 'metadata',
+  dataMode: false,
+  action: undefined,
+  target: undefined,
+  params: {}
+}
+{
+  host: 'jakedot.net',
+  channel: 'ivc',
+  channelType: 'standard',
+  dataMode: false,
+  action: 'notify',
+  target: 'user@pm.me',
+  params: { subject: 'Hi' }
+}
+{
+  host: 'jakedot.net',
+  channel: 'user',
+  channelType: 'user',
+  dataMode: false,
+  action: 'notify',
+  target: undefined,
+  params: { subject: 'Hi' }
+}
+{
+  host: 'jakedot.net',
+  channel: 'channel',
+  channelType: 'metadata',
+  dataMode: false,
+  action: 'notify',
+  target: undefined,
+  params: { subject: 'Hi' }
+}
