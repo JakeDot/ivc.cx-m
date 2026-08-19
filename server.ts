@@ -1,11 +1,84 @@
 import express from "express";
 import path from "path";
+import fs from "fs/promises";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import nacl from "tweetnacl";
+
+// Persistence configuration
+const STATE_FILE = path.join(process.cwd(), 'ivc-state.json');
+
+async function loadState() {
+  try {
+    const data = await fs.readFile(STATE_FILE, 'utf-8');
+    const parsed = JSON.parse(data);
+    return parsed;
+  } catch (err) {
+    return { globalServerModes: [], targetModes: {}, userRegistry: {}, userModesRegistry: {} };
+  }
+}
+
+async function saveState(
+  globalModes: Set<string>, 
+  targetModesMap: Map<string, Set<string>>,
+  userRegistry: Map<string, string>,
+  userModesRegistry: Map<string, Set<string>>
+) {
+  const targetModesObj: Record<string, string[]> = {};
+  for (const [target, modes] of targetModesMap.entries()) {
+    targetModesObj[target] = Array.from(modes);
+  }
+  
+  const userRegistryObj: Record<string, string> = {};
+  for (const [user, key] of userRegistry.entries()) {
+    userRegistryObj[user] = key;
+  }
+  
+  const userModesObj: Record<string, string[]> = {};
+  for (const [user, modes] of userModesRegistry.entries()) {
+    userModesObj[user] = Array.from(modes);
+  }
+
+  const state = {
+    globalServerModes: Array.from(globalModes),
+    targetModes: targetModesObj,
+    userRegistry: userRegistryObj,
+    userModesRegistry: userModesObj
+  };
+  
+  try {
+    await fs.writeFile(STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('[IVC Persistence] Failed to save state', err);
+  }
+}
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Load persistence
+  const initialState = await loadState();
+  const globalServerModes = new Set<string>(initialState.globalServerModes || []);
+  const targetModesState = new Map<string, Set<string>>();
+  const userRegistry = new Map<string, string>();
+  const userModesRegistry = new Map<string, Set<string>>();
+  
+  if (initialState.targetModes) {
+    for (const [target, modes] of Object.entries(initialState.targetModes)) {
+      targetModesState.set(target, new Set(modes as string[]));
+    }
+  }
+  if (initialState.userRegistry) {
+    for (const [user, key] of Object.entries(initialState.userRegistry)) {
+      userRegistry.set(user, key as string);
+    }
+  }
+  if (initialState.userModesRegistry) {
+    for (const [user, modes] of Object.entries(initialState.userModesRegistry)) {
+      userModesRegistry.set(user, new Set(modes as string[]));
+    }
+  }
 
   // Middleware to parse JSON payloads
   app.use(express.json());
@@ -55,6 +128,81 @@ async function startServer() {
     const userRemote = user.includes('@') ? user : `${user}@${req.ip || 'remote'}`;
     
     res.setHeader('Location', `${userRemote}#${host}${channels}`);
+    next();
+  });
+
+  // ==========================================
+  // Zero-Trust Cryptographic Identity Engine
+  // ==========================================
+  app.use((req, res, next) => {
+    // Only apply cryptographic checks to IVC protocol routes (skip vite/assets/api)
+    if (
+      !req.path.startsWith('/+') && 
+      !req.path.startsWith('/-') && 
+      !req.path.startsWith('/%23') && 
+      !req.path.startsWith('/#') && 
+      !req.path.startsWith('/@')
+    ) {
+      return next();
+    }
+
+    const ivcUserHeader = req.headers['x-ivc-user'] as string;
+    const pubKeyBase64 = req.headers['x-ivc-pubkey'] as string;
+    const signatureBase64 = req.headers['x-ivc-signature'] as string;
+    const timestamp = req.headers['x-ivc-timestamp'] as string;
+
+    if (!ivcUserHeader || !pubKeyBase64 || !signatureBase64 || !timestamp) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Missing Cryptographic Identity headers.' });
+    }
+
+    // 1. Replay Protection (5 minute window)
+    if (Math.abs(Date.now() - parseInt(timestamp)) > 5 * 60 * 1000) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Payload timestamp expired.' });
+    }
+
+    // Parse base username (strip out any modes they try to spoof in the header)
+    const baseUser = ivcUserHeader.split('+')[0].replace('@', '');
+
+    // 2. Cryptographic Signature Verification
+    // message format: timestamp:method:path:body
+    const message = `${timestamp}:${req.method}:${req.path}:${req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : ''}`;
+    
+    try {
+      const msgUint8 = new TextEncoder().encode(message);
+      const sigUint8 = new Uint8Array(Buffer.from(signatureBase64, 'base64'));
+      const pubKeyUint8 = new Uint8Array(Buffer.from(pubKeyBase64, 'base64'));
+
+      const isValid = nacl.sign.detached.verify(msgUint8, sigUint8, pubKeyUint8);
+      if (!isValid) throw new Error('Invalid Ed25519 signature');
+    } catch (e: any) {
+      console.error('[IVC Crypto] Signature failure:', e.message);
+      return res.status(401).json({ error: 'Unauthorized', message: 'Cryptographic signature verification failed.' });
+    }
+
+    // 3. Trust-On-First-Use (TOFU) Identity Registry
+    if (!userRegistry.has(baseUser)) {
+      userRegistry.set(baseUser, pubKeyBase64);
+      
+      // The very first user to register on the node becomes the superadmin (+oa)
+      if (userRegistry.size === 1) {
+        userModesRegistry.set(baseUser, new Set(['o', 'a']));
+        console.log(`[IVC Security] First user registered: @${baseUser}. Granted superadmin (+oa).`);
+      } else {
+        userModesRegistry.set(baseUser, new Set());
+      }
+      saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
+    } else if (userRegistry.get(baseUser) !== pubKeyBase64) {
+      console.warn(`[IVC Security] Identity theft attempt blocked for @${baseUser}`);
+      return res.status(403).json({ error: 'Forbidden', message: 'Identity theft detected: Public key mismatch.' });
+    }
+
+    // 4. Mode Enforcement injection
+    // We completely overwrite the X-IVC-User header with the server's truth of their modes,
+    // so downstream handlers can't be spoofed by the client appending '+oa'
+    const actualModes = userModesRegistry.get(baseUser) || new Set();
+    const modesStr = actualModes.size > 0 ? `+${Array.from(actualModes).join('')}` : '';
+    req.headers['x-ivc-user'] = `@${baseUser}${modesStr}`;
+
     next();
   });
 
@@ -179,10 +327,39 @@ async function startServer() {
   });
 
   // ==========================================
+  // User Registry API (GET /+users)
+  // ==========================================
+  app.get(/^\/\+users$/, (req, res) => {
+    const ivcUser = req.headers['x-ivc-user'] as string || '';
+    
+    // Check if the user string contains +a (Admin)
+    if (!ivcUser.includes('+') || !ivcUser.split('+')[1].includes('a')) {
+      return res.status(403).json({ 
+        error: 'Forbidden', 
+        message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.' 
+      });
+    }
+
+    const usersList: any[] = [];
+    for (const [user, pubkey] of userRegistry.entries()) {
+      const modesSet = userModesRegistry.get(user);
+      usersList.push({
+        username: user,
+        pubkey: pubkey,
+        modes: modesSet ? Array.from(modesSet).join('') : ''
+      });
+    }
+
+    res.json({
+      users: usersList,
+      requested_by: ivcUser,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // ==========================================
   // Server Admin Stats API (GET /+)
   // ==========================================
-  const globalServerModes = new Set<string>();
-
   app.get(/^\/\+$/, (req, res) => {
     // Requires Admin (+a) privilege
     const ivcUser = req.headers['x-ivc-user'] as string || '';
@@ -235,6 +412,8 @@ async function startServer() {
     
     const activeModesStr = Array.from(globalServerModes).join('');
     console.log(`[IVC API] Global Server Mode Update: ${action === 'add' ? '+' : '-'}${modes} by ${ivcUser}. Current: +${activeModesStr}`);
+    
+    saveState(globalServerModes, targetModesState);
 
     sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
       type: 'ivc_server_mode', 
@@ -273,12 +452,29 @@ async function startServer() {
     const modes = req.params[0];
     const target = decodeURIComponent(req.params[1]);
     
-    console.log(`[IVC API] Mode Update: ${action === 'add' ? '+' : '-'}${modes} on ${target} by ${ivcUser}`);
+    if (!targetModesState.has(target)) {
+      targetModesState.set(target, new Set());
+    }
+    const currentModes = targetModesState.get(target)!;
+
+    for (const char of modes) {
+      if (action === 'add') {
+        currentModes.add(char);
+      } else {
+        currentModes.delete(char);
+      }
+    }
+
+    const activeModesStr = Array.from(currentModes).join('');
+    console.log(`[IVC API] Mode Update: ${action === 'add' ? '+' : '-'}${modes} on ${target} by ${ivcUser}. Current: +${activeModesStr}`);
+    
+    saveState(globalServerModes, targetModesState);
 
     sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
       type: 'ivc_mode_update', 
       action: action,
       modes: modes, 
+      active_modes: activeModesStr,
       target: target,
       sender: ivcUser
     })}\n\n`));
@@ -287,6 +483,7 @@ async function startServer() {
       status: "modes_updated", 
       target: target, 
       modes: `${action === 'add' ? '+' : '-'}${modes}`,
+      active_modes: `+${activeModesStr}`,
       action: action
     });
   };
@@ -311,6 +508,8 @@ async function startServer() {
     }
     
     const payload = req.body;
+    const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
+    const userModes = ivcUser.includes('+') ? ivcUser.split('+')[1] : '';
 
     if (channelRaw.startsWith('+')) {
       const modes = channelRaw.substring(1); // e.g. 'xyz'
@@ -326,13 +525,28 @@ async function startServer() {
       return res.json({ status: "server_modes_applied", modes: modes, applied_payload: payload });
     }
 
-    console.log(`[IVC API] Direct POST to channel: ${channelRaw}`, payload);
+    // --- MODE ENFORCEMENT ENGINE ---
+    const channelModes = targetModesState.get(channelRaw);
+    if (channelModes && channelModes.has('m')) {
+      // Channel is +m (Moderated). Check if sender has +v (Voice), +o (Operator), or +a (Admin).
+      if (!userModes.includes('v') && !userModes.includes('o') && !userModes.includes('a')) {
+        console.log(`[IVC API] Blocked post to ${channelRaw} by ${ivcUser} due to +m mode.`);
+        return res.status(403).json({
+          error: "Moderated Channel",
+          message: `Cannot post to ${channelRaw}. Channel is +m (Moderated) and you lack +v (Voice) or +o (Operator).`
+        });
+      }
+    }
+    // --------------------------------
+
+    console.log(`[IVC API] Direct POST to channel: ${channelRaw} by ${ivcUser}`, payload);
 
     // Broadcast the post to all connected SSE clients
     sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
       type: 'ivc_post', 
       channel: channelRaw, 
-      payload: payload 
+      payload: payload,
+      sender: ivcUser
     })}\n\n`));
 
     res.json({ status: "posted", channel: channelRaw, received: payload });

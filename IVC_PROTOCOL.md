@@ -43,31 +43,46 @@ Applied to a channel's address, enforcing rules or states for all participants w
 When a user targets a channel, their global modes might be overridden or augmented by contextual modes specific to that channel session. 
 * **Example Use Case:** A user is not a global admin but is granted `+o` exclusively for `#community`.
 
-## 3. Server Configuration Endpoint (GET /+)
+## 3. Zero-Trust Cryptographic Engine
+
+To prevent spoofing and unauthorized access across the IVC network, the protocol strictly enforces a **Zero-Trust Cryptographic Signature Engine** utilizing **Ed25519 Asymmetric Cryptography**.
+
+### How it works
+1. **Identity is a Keypair:** Users generate a local Ed25519 keypair. The Public Key represents their mathematical identity.
+2. **Payload Signatures:** Every REST call (e.g. `POST`, `PUT`) must be cryptographically signed by the sender's Private Key. 
+3. **Replay Protection:** Signatures are computed over `timestamp:method:path:body` and strictly verified against a 5-minute expiry window.
+4. **Server-Enforced Modes:** Clients can no longer arbitrarily append privileges (e.g. `+oa`) to their `X-IVC-User` headers. The server utilizes **Trust-On-First-Use (TOFU)** to map a username to a Public Key. The server tracks global privileges internally and securely overrides the header.
+
+### Required HTTP Headers
+* `X-IVC-User`: The base username (e.g., `@jakedot`).
+* `X-IVC-PubKey`: The Base64-encoded Ed25519 Public Key.
+* `X-IVC-Signature`: The Base64-encoded Detached Signature.
+* `X-IVC-Timestamp`: Epoch timestamp in milliseconds.
+
+## 4. Server Configuration Endpoint (GET /+)
 
 The server exposes a special root-level `+` endpoint (`GET /+`) which dumps the current active modes and statistics of the server in JSON format.
 
-**Security:** This endpoint requires the requester to hold Admin (`+a`) privileges.
+**Security:** This endpoint requires the requester to hold Admin (`+a`) privileges, enforced cryptographically by the server state.
 
 * **Request Format:** 
   `GET /+`
 * **Authorization:** 
-  Header: `X-IVC-User: @username+a` 
-  *(The user URI must explicitly include the `+a` mode).*
+  Header: `X-IVC-User: @username` (Client submits base username; Server verifies signature and checks internal Admin mapping).
 
 
-## 4. Global Server Mode Modification Endpoints
+## 5. Global Server Mode Modification Endpoints
 
 Administrators can dynamically modify global server modes (which apply globally to the entire IVC Node) via the HTTP REST API. Mode updates are immediately broadcast over the SSE network to all connected clients.
 
-**Security:** These endpoints strictly require the requester to hold Admin (`+a`) privileges.
+**Security:** These endpoints strictly require the requester to hold Admin (`+a`) privileges, enforced cryptographically.
 
 * **Add Modes:** `PUT /+[modes]`
 * **Remove Modes:** `PUT /-[modes]` (or `DELETE /+[modes]`)
-* **Headers:** `X-IVC-User: @username+a`
-* **Example:** `curl -X PUT -H "X-IVC-User: @jakedot+oa" https://server.com/+x` (Applies mode +x globally to the server).
+* **Headers:** Standard IVC Cryptographic Signature Headers.
+* **Example:** `curl -X PUT -H "X-IVC-User: @jakedot" -H "X-IVC-PubKey: ..." -H "X-IVC-Signature: ..." -H "X-IVC-Timestamp: ..." https://server.com/+x` 
 
-## 5. Target Mode Modification Endpoints
+## 6. Target Mode Modification Endpoints
 
 Administrators and Operators can dynamically modify modes on specific channels or users via the HTTP REST API. Mode updates are immediately broadcast over the SSE network to all connected clients.
 

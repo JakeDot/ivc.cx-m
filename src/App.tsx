@@ -4,12 +4,14 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2 } from 'lucide-react';
+import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
 import { Chatbot } from './components/Chatbot';
 import { IvcConnectionModal } from './components/IvcConnectionModal';
+import { ModeManagerModal } from './components/ModeManagerModal';
+import { ChannelLandingPage } from './components/ChannelLandingPage';
 
 type PendingNotification = {
   id: string;
@@ -57,6 +59,9 @@ type ScheduledTask = {
 
 import { ChannelLandingPage } from './components/ChannelLandingPage';
 
+import { ivcIdentity } from './lib/ivcIdentity';
+import { UserRegistryModal } from './components/UserRegistryModal';
+
 export default function App() {
   const [currentPath, setCurrentPath] = useState('');
 
@@ -91,6 +96,8 @@ export default function App() {
   const [sidebarTab, setSidebarTab] = useState<'live' | 'scheduled'>('live');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isIvcModalOpen, setIsIvcModalOpen] = useState(false);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [isUserRegistryOpen, setIsUserRegistryOpen] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('09:00');
   const [scheduleName, setScheduleName] = useState('');
   
@@ -534,12 +541,27 @@ export default function App() {
             <span>Notification Sender</span>
           </div>
           <div className="h-4 w-px bg-slate-300"></div>
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full inline-block w-fit">@{ivcIdentity.username}</span>
+            <span className="text-[10px] text-slate-400 font-mono tracking-tighter w-24 truncate" title={ivcIdentity.getPublicKeyBase64()}>
+              {ivcIdentity.getPublicKeyBase64().substring(0, 16)}...
+            </span>
+          </div>
+          <div className="h-4 w-px bg-slate-300"></div>
           <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => setIsIvcModalOpen(true)}>
             <Network className="w-3.5 h-3.5" />
             <span>
               IVC Network: {ivcStatus === 'connecting' ? 'Connecting...' : ivcStatus === 'connected' ? 'Connected' : 'Offline'}
             </span>
             <div className={`w-2 h-2 rounded-full ml-1 ${ivcStatus === 'connected' ? 'bg-green-500' : ivcStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-400'}`}></div>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors" onClick={() => setIsUserRegistryOpen(true)}>
+            <Users className="w-3.5 h-3.5" />
+            <span>Users</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setIsModeModalOpen(true)}>
+            <Settings className="w-3.5 h-3.5" />
+            <span>Manage Modes</span>
           </div>
         </div>
         
@@ -1255,6 +1277,16 @@ export default function App() {
         onClose={() => setIsIvcModalOpen(false)} 
         status={ivcStatus} 
       />
+
+      {/* Mode Manager Modal */}
+      {isModeModalOpen && (
+        <ModeManagerModal onClose={() => setIsModeModalOpen(false)} />
+      )}
+
+      {/* User Registry Modal */}
+      {isUserRegistryOpen && (
+        <UserRegistryModal onClose={() => setIsUserRegistryOpen(false)} />
+      )}
     </div>
   );
 }
