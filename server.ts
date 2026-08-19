@@ -136,12 +136,20 @@ async function startServer() {
   // ==========================================
   app.use((req, res, next) => {
     // Only apply cryptographic checks to IVC protocol routes (skip vite/assets/api)
+    let fullyDecodedPath = req.path;
+    try {
+      while (fullyDecodedPath !== decodeURIComponent(fullyDecodedPath)) {
+        fullyDecodedPath = decodeURIComponent(fullyDecodedPath);
+      }
+    } catch (e) {
+      // Ignore malformed URIs
+    }
+
     if (
-      !req.path.startsWith('/+') && 
-      !req.path.startsWith('/-') && 
-      !req.path.startsWith('/%23') && 
-      !req.path.startsWith('/#') && 
-      !req.path.startsWith('/@')
+      !fullyDecodedPath.startsWith('/+') &&
+      !fullyDecodedPath.startsWith('/-') &&
+      !fullyDecodedPath.startsWith('/#') &&
+      !fullyDecodedPath.startsWith('/@')
     ) {
       return next();
     }
