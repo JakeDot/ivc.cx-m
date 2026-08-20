@@ -4,14 +4,13 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users } from 'lucide-react';
+import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
 import { Chatbot } from './components/Chatbot';
 import { IvcConnectionModal } from './components/IvcConnectionModal';
 import { ModeManagerModal } from './components/ModeManagerModal';
-import { ChannelLandingPage } from './components/ChannelLandingPage';
 
 type PendingNotification = {
   id: string;
@@ -187,7 +186,7 @@ export default function App() {
     ivcClient.onDisconnect = () => setIvcStatus('disconnected');
     
     // Listen to IVC network for notification triggers
-    ivcClient.onMessage = (msg) => {
+    ivcClient.onMessage = (msg: any) => {
       if (msg.type === 'ivc_post') {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification(`New Post in #${msg.channel || 'unknown'}`, {

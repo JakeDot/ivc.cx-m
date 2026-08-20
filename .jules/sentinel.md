@@ -2,3 +2,11 @@
 **Vulnerability:** A critical bypass in the Zero-Trust Cryptographic Identity Engine middleware. The middleware checked restricted prefixes against `req.path` using `startsWith()`. Because `req.path` retains url-encoded values for some characters depending on the URI, sending `%2ba` bypassed the `startsWith('/+')` check. However, a downstream handler decoded the `req.path` using `decodeURIComponent` and applied global server modes.
 **Learning:** Express.js `req.path` is not fully decoded depending on the characters, which can lead to authentication and authorization bypasses if custom middleware performs substring matches directly against it but subsequent logic uses `decodeURIComponent()`.
 **Prevention:** Always fully decode paths `decodeURIComponent` in routing and security validation layers, specifically in custom authentication middleware, before attempting substring checks like `startsWith()`. Ensure loop-decoding for nested encoded strings.
+
+## 2026-08-20 - Ensure Authentication Middleware Handles All Expected Path Prefixes
+**Vulnerability:** A zero-trust cryptographic engine implemented in Express middleware checked paths to bypass static assets (like `/vite/`), but the explicit allowlist was incomplete. It omitted valid channel prefixes (`/$`, `/§`, `/∆`, `/~`) defined in the protocol. Because of the default-allow (bypassing logic) if the prefix was missing, requests to these sensitive channels bypassed authentication completely.
+**Learning:** When writing middleware to enforce security checks on specific paths, use an explicit "fail-closed" or default-deny approach. If using a default-allow approach (skipping authentication for unrecognized paths), ensure the list of protected paths is absolutely exhaustive and kept in sync with protocol documentation. Additionally, setting non-ASCII characters (like `∆`) in HTTP headers like `Location` causes Node to throw a `TypeError [ERR_INVALID_CHAR]`.
+**Prevention:**
+- Align security middleware checks directly with the system's defined protocol rules.
+- Test routing and authentication middleware with a fuzzing or boundary-testing approach to cover all documented special characters.
+- Always encode dynamic URL data inserted into HTTP headers using `encodeURI()` or similar methods to prevent `ERR_INVALID_CHAR` crashes or header injection vulnerabilities.
