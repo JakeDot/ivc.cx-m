@@ -128,7 +128,9 @@ async function startServer() {
     // e.g. Location: user@remote#server.ivc.cx/#c1,c2
     const userRemote = user.includes('@') ? user : `${user}@${req.ip || 'remote'}`;
     
-    res.setHeader('Location', `${userRemote}#${host}${channels}`);
+    // Ensure the Location header does not contain invalid characters (e.g. ∆)
+    const locationHeader = `${userRemote}#${host}${channels}`;
+    res.setHeader('Location', encodeURI(locationHeader));
     next();
   });
 
@@ -150,7 +152,11 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/+') &&
       !fullyDecodedPath.startsWith('/-') &&
       !fullyDecodedPath.startsWith('/#') &&
-      !fullyDecodedPath.startsWith('/@')
+      !fullyDecodedPath.startsWith('/@') &&
+      !fullyDecodedPath.startsWith('/$') &&
+      !fullyDecodedPath.startsWith('/§') &&
+      !fullyDecodedPath.startsWith('/∆') &&
+      !fullyDecodedPath.startsWith('/~')
     ) {
       return next();
     }
@@ -461,7 +467,7 @@ async function startServer() {
     const activeModesStr = Array.from(globalServerModes).join('');
     console.log(`[IVC API] Global Server Mode Update: ${action === 'add' ? '+' : '-'}${modes} by ${ivcUser}. Current: +${activeModesStr}`);
     
-    saveState(globalServerModes, targetModesState);
+    saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
     sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
       type: 'ivc_server_mode', 
@@ -516,7 +522,7 @@ async function startServer() {
     const activeModesStr = Array.from(currentModes).join('');
     console.log(`[IVC API] Mode Update: ${action === 'add' ? '+' : '-'}${modes} on ${target} by ${ivcUser}. Current: +${activeModesStr}`);
     
-    saveState(globalServerModes, targetModesState);
+    saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
     sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
       type: 'ivc_mode_update', 
