@@ -1125,15 +1125,17 @@ export default function App() {
                             </div>
                             <div className="flex items-center gap-1">
                               <button
+                                aria-label={task.isActive ? "Pause Task" : "Resume Task"}
                                 onClick={() => setScheduledTasks(prev => prev.map(t => t.id === task.id ? { ...t, isActive: !t.isActive } : t))}
-                                className={`p-1.5 rounded transition-colors ${task.isActive ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                                className={`p-1.5 rounded transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-offset-1 ${task.isActive ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                                 title={task.isActive ? "Pause Task" : "Resume Task"}
                               >
                                 {task.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                               </button>
                               <button
-                                onClick={() => setScheduledTasks(prev => prev.filter(t => t.id !== task.id))}
-                                className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                aria-label="Delete Task"
+                                onClick={() => { if (window.confirm("Are you sure you want to delete this scheduled task?")) { setScheduledTasks(prev => prev.filter(t => t.id !== task.id)); } }}
+                                className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-offset-1"
                                 title="Delete Task"
                               >
                                 <Trash2 className="w-4 h-4" />
