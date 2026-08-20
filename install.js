@@ -9,7 +9,7 @@
  * since native Node.js requires a loader to parse TypeScript dynamically.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -24,10 +24,10 @@ export function pullLatest(repoUrl = DEFAULT_REPO_URL, targetDir = TARGET_DIR) {
   
   if (existsSync(targetDir)) {
     console.log('[Install] Directory exists. Pulling latest changes...');
-    execSync('git pull', { stdio: 'inherit', cwd: targetDir });
+    execFileSync('git', ['pull'], { stdio: 'inherit', cwd: targetDir });
   } else {
     console.log(`[Install] Cloning repository ${repoUrl}...`);
-    execSync(`git clone ${repoUrl} ${targetDir}`, { stdio: 'inherit' });
+    execFileSync('git', ['clone', repoUrl, targetDir], { stdio: 'inherit' });
   }
   
   console.log('[Install] Repository up to date.\n');
