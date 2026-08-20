@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs/promises";
+import dns from "dns/promises";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import nacl from "tweetnacl";
@@ -318,7 +319,46 @@ async function startServer() {
 
   // Helper endpoint to register this service with an external IVC host
   app.post("/api/ivc/register", async (req, res) => {
-    const { ivc_host } = req.body; // e.g. "https://chat.yourdomain.com"
+    let { ivc_host } = req.body; // e.g. "https://chat.yourdomain.com"
+
+    // SSRF Protection: Validate the provided host URL
+    try {
+      const parsedUrl = new URL(ivc_host);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return res.status(400).json({ error: "Invalid protocol" });
+      }
+
+      let targetHostname = parsedUrl.hostname;
+
+      // Allow specific alias for localhost testing per requirements
+      if (targetHostname === '$me') {
+        parsedUrl.hostname = 'localhost';
+        ivc_host = parsedUrl.toString();
+        // Skip DNS resolution check for explicit $me alias
+      } else {
+        // Resolve DNS to get actual IP to prevent bypasses like 127.1 or octal/hex encodings
+        const { address } = await dns.lookup(targetHostname);
+
+        // Block private, loopback, and reserved IPs
+        if (
+          address === '::1' ||
+          address === '0.0.0.0' ||
+          address.startsWith('127.') ||
+          address.startsWith('10.') ||
+          address.startsWith('192.168.') ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(address) ||
+          address.startsWith('169.254.') ||
+          address.startsWith('fc00:') ||
+          address.startsWith('fd00:') ||
+          address.startsWith('fe80:')
+        ) {
+          return res.status(403).json({ error: "Forbidden host" });
+        }
+      }
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid or unresolvable URL" });
+    }
+
     const myEndpoint = process.env.APP_URL ? `${process.env.APP_URL}/api/ivc/execute` : `http://localhost:${PORT}/api/ivc/execute`;
     
     try {

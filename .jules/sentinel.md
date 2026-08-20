@@ -10,3 +10,7 @@
 - Align security middleware checks directly with the system's defined protocol rules.
 - Test routing and authentication middleware with a fuzzing or boundary-testing approach to cover all documented special characters.
 - Always encode dynamic URL data inserted into HTTP headers using `encodeURI()` or similar methods to prevent `ERR_INVALID_CHAR` crashes or header injection vulnerabilities.
+## 2026-08-19 - SSRF Vulnerability in Foreign Service Registration
+**Vulnerability:** The `/api/ivc/register` endpoint permitted Server-Side Request Forgery (SSRF) because it fetched from a user-provided `ivc_host` URL without any validation or DNS resolution checks.
+**Learning:** Checking hostnames directly against strings like `localhost` or `127.0.0.1` is insufficient, as it can be bypassed via decimal IPs (`2130706433`), octal IPs, hex IPs, `[::1]`, and domains mapping to localhost (e.g. `127.1`). A robust check requires resolving the hostname to its IP address via DNS and verifying the IP against a blocklist of private/loopback addresses.
+**Prevention:** Always validate user-provided URLs. Use `dns.lookup` to retrieve the actual IP address *before* making the request, and check it against reserved IP ranges (e.g. `10.x.x.x`, `192.168.x.x`, `127.x.x.x`, etc). Allow an explicit override (like `$me=localhost`) if local testing is strictly required by requirements.
