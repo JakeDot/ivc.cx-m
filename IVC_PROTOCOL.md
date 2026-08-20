@@ -100,7 +100,23 @@ The IVC network automatically tracks and defines a user's footprint across the s
 * **Header Format:** `Location: user@remote#server.ivc.cx/#c1,c2,...`
 * **Example Output:** `Location: jakedot+oa@127.0.0.1#ivc.local/#general`
 
-## 7. Server-Sent Events (SSE) Payloads
+## 7. Subobject and Metadata Queries
+
+Objects and messages within the IVC network can be directly addressed using subobject query paths appended to the URI. This applies to any addressable object (like a channel, user, or metadata channel).
+
+### Message Subobjects
+Individual messages inside an addressable object can be queried via:
+* `/#line[number]`: Address a message by its ordinal line number (e.g., `ivc://#general/#line5`).
+* `/£id[string]`: Address a message by its unique ID (e.g., `ivc://@jakedot/£id123abc`).
+
+### Metadata Event Streams
+Event streams for message states can be monitored by appending:
+* `/∆sent`: Emits events specifically when messages are dispatched to the target.
+* `/∆received`: Emits events specifically when messages are acknowledged by the target.
+
+**Example:** `ivc://@jakedot/£id123abc/∆received` (Querying the received metadata event for a specific message ID in a user's channel).
+
+## 8. Server-Sent Events (SSE) Payloads
 
 The live SSE network streams structured JSON payloads. Clients receive real-time updates for:
 * **Posts:** `{"type": "ivc_post", "channel": "c", "payload": "..."}`

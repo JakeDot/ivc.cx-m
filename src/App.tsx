@@ -451,20 +451,35 @@ export default function App() {
     setPendingQueue(prev => prev.filter(n => n.id !== id));
   };
 
-  const filteredPendingQueue = pendingQueue.filter(item => 
-    item.to.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.subject.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ⚡ Bolt: Memoize filtering and extract invariant computations outside loop
+  const filteredPendingQueue = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    if (!query) return pendingQueue;
+    return pendingQueue.filter(item =>
+      item.to.toLowerCase().includes(query) ||
+      item.subject.toLowerCase().includes(query)
+    );
+  }, [pendingQueue, searchQuery]);
 
-  const filteredSentLogs = sentLogs.filter(log => 
-    log.to.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    log.subject.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ⚡ Bolt: Memoize filtering and extract invariant computations outside loop
+  const filteredSentLogs = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    if (!query) return sentLogs;
+    return sentLogs.filter(log =>
+      log.to.toLowerCase().includes(query) ||
+      log.subject.toLowerCase().includes(query)
+    );
+  }, [sentLogs, searchQuery]);
 
+  // ⚡ Bolt: Extract invariant date parsing outside the filter loop
   const dateFilteredSentLogs = useMemo(() => {
+    const startTime = startDate ? startOfDay(parseISO(startDate)).getTime() : null;
+    const endTime = endDate ? endOfDay(parseISO(endDate)).getTime() : null;
+
     return filteredSentLogs.filter(log => {
-      if (startDate && new Date(log.timestamp) < startOfDay(parseISO(startDate))) return false;
-      if (endDate && new Date(log.timestamp) > endOfDay(parseISO(endDate))) return false;
+      const logTime = new Date(log.timestamp).getTime();
+      if (startTime && logTime < startTime) return false;
+      if (endTime && logTime > endTime) return false;
       return true;
     });
   }, [filteredSentLogs, startDate, endDate]);

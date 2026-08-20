@@ -1,11 +1,15 @@
 export interface IvcUriDetails {
   host: string;
+  networkId?: string;
   channel: string;
   channelType?: 'standard' | 'user' | 'metadata' | 'oper';
   modes?: string;
   dataMode?: boolean;
   action?: string;
   target?: string;
+  subobject?: string;
+  event?: string;
+  property?: string;
   params: Record<string, string>;
   isSecure: boolean;
 }
@@ -29,9 +33,24 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
 
   let urlStr = protocolMatch[1];
   
+  // Handle £id schema which prefixes the host: £cluster$server
+  let networkId: string | undefined;
+  if (urlStr.startsWith('£') || urlStr.startsWith('%C2%A3')) {
+    const decUrlStr = decodeURIComponent(urlStr);
+    // networkId schema uses $ for server namespace, so we only match on / or # or @ or § to split
+    const hostEndIdx = decUrlStr.search(/[\/#@§]/);
+    if (hostEndIdx !== -1) {
+      networkId = decUrlStr.substring(0, hostEndIdx);
+      urlStr = decUrlStr.substring(hostEndIdx);
+    } else {
+      networkId = decUrlStr;
+      urlStr = '';
+    }
+  }
+
   // If it starts with #, @, §, or $, it means host is omitted
-  if (/^[#@§$]/.test(urlStr)) {
-    urlStr = 'default.ivc.local/' + urlStr;
+  if (/^[#@§$]/.test(urlStr) || !urlStr) {
+    urlStr = 'default.ivc.local/' + urlStr.replace(/^\//, '');
   }
   
   try {
@@ -44,15 +63,73 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
     let channelType: 'standard' | 'user' | 'metadata' | 'oper' | undefined;
     let modes: string | undefined;
     let dataMode = false;
-
-    // Handle hash channels (ivc://host/#channel or ivc://host/#channel+xyz-abc)
-    if (url.hash) {
-      channel = url.hash.substring(1);
-      channelType = 'standard';
-    }
+    let subobject: string | undefined;
+    let event: string | undefined;
+    let property: string | undefined;
 
     const pathname = decodeURIComponent(url.pathname);
     const paths = pathname.replace(/^\//, '').split('/').filter(Boolean);
+
+    // Handle hash channels (ivc://host/#channel or ivc://host/#channel+xyz-abc)
+    // NOTE: URL parsing treats anything after the first # as the hash.
+    // So ivc://host/#channel/#line or ivc://host/#channel/£id gets lumped into url.hash
+    // Or if the URL is ivc://host/@user/#line, url.hash is '#line' and channel is empty right now.
+    if (url.hash) {
+      // Decode hash to support £ (which URL encodes as %C2%A3) and split by /
+      const decodedHash = decodeURIComponent(url.hash.substring(1));
+      const hashParts = decodedHash.split('/');
+
+      if (!channel && !paths.length && !decodedHash.startsWith('line')) {
+         channel = hashParts[0];
+         channelType = 'standard';
+      }
+
+      if (decodedHash.startsWith('line')) {
+         subobject = '#' + decodedHash;
+      }
+
+      // If there are subobjects appended after the channel in the hash string
+      if (hashParts.length > 1) {
+        for (let i = 1; i < hashParts.length; i++) {
+          const part = hashParts[i];
+          if (part.startsWith('#line') || part.startsWith('£id')) {
+            subobject = part;
+          } else if (part.startsWith('∆sent') || part.startsWith('∆received')) {
+            // Handle property appended to event, e.g. ∆sent§author
+            if (part.includes('§')) {
+              const split = part.split('§');
+              event = split[0];
+              property = split[1];
+            } else {
+              event = part;
+            }
+          }
+        }
+      } else if (channel && hashParts.length === 1 && (hashParts[0].startsWith('#line') || hashParts[0].startsWith('£id'))) {
+         // This block handles cases where channel was parsed from path, but hash exists (e.g. @user/#line)
+         if (!subobject && (hashParts[0].startsWith('#line') || hashParts[0].startsWith('£id'))) {
+           subobject = hashParts[0];
+         }
+      }
+    }
+
+    // Extract subobjects and events from standard paths if they exist
+    for (let i = paths.length - 1; i >= 0; i--) {
+      const part = paths[i];
+      if (part.startsWith('#line') || part.startsWith('£id')) {
+        subobject = part;
+        paths.splice(i, 1);
+      } else if (part.startsWith('∆sent') || part.startsWith('∆received')) {
+        if (part.includes('§')) {
+          const split = part.split('§');
+          event = split[0];
+          property = split[1];
+        } else {
+          event = part;
+        }
+        paths.splice(i, 1);
+      }
+    }
     
     // Check if the last path segment is a channel definition (e.g. @user, §channel, $channel)
     if (!channel && paths.length > 0) {
@@ -104,12 +181,16 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
 
     return { 
       host, 
+      networkId,
       channel,
       channelType,
       modes,
       dataMode,
       action, 
-      target, 
+      target,
+      subobject,
+      event,
+      property,
       params, 
       isSecure: true // Default to WSS/HTTPS
     };
