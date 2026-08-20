@@ -10,6 +10,7 @@ export interface IvcUriDetails {
   subobject?: string;
   event?: string;
   property?: string;
+  serverContext?: string;
   params: Record<string, string>;
   isSecure: boolean;
 }
@@ -32,28 +33,22 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
   }
 
   let urlStr = protocolMatch[1];
-  
-  // Handle £id schema which prefixes the host: £cluster$server
   let networkId: string | undefined;
-  if (urlStr.startsWith('£') || urlStr.startsWith('%C2%A3')) {
-    const decUrlStr = decodeURIComponent(urlStr);
-    // networkId schema uses $ for server namespace, so we only match on / or # or @ or § to split
-    const hostEndIdx = decUrlStr.search(/[\/#@§]/);
-    if (hostEndIdx !== -1) {
-      networkId = decUrlStr.substring(0, hostEndIdx);
-      urlStr = decUrlStr.substring(hostEndIdx);
-    } else {
-      networkId = decUrlStr;
-      urlStr = '';
-    }
-  }
-
-  // If it starts with #, @, §, or $, it means host is omitted
-  if (/^[#@§$]/.test(urlStr) || !urlStr) {
-    urlStr = 'default.ivc.local/' + urlStr.replace(/^\//, '');
-  }
   
   try {
+    // Handle £id schema which prefixes the host: £cluster$server
+    // Use regex to safely extract just the networkId without decoding the entire urlStr
+    const networkIdMatch = urlStr.match(/^(?:%C2%A3|£)([^/#@§]*)/);
+    if (networkIdMatch) {
+      networkId = decodeURIComponent(networkIdMatch[0]);
+      urlStr = urlStr.substring(networkIdMatch[0].length);
+    }
+
+    // If it starts with #, @, §, or $, or starts with a / followed by them, it means host is omitted
+    if (/^\/?[#@§$]/.test(urlStr) || !urlStr || urlStr === '/') {
+      urlStr = 'default.ivc.local/' + urlStr.replace(/^\//, '');
+    }
+
     const url = new URL(`http://${urlStr}`);
     
     let host = url.host;
@@ -66,6 +61,7 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
     let subobject: string | undefined;
     let event: string | undefined;
     let property: string | undefined;
+    let serverContext: string | undefined;
 
     const pathname = decodeURIComponent(url.pathname);
     const paths = pathname.replace(/^\//, '').split('/').filter(Boolean);
@@ -85,7 +81,7 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
       }
 
       if (decodedHash.startsWith('line')) {
-         subobject = '#' + decodedHash;
+         subobject = '#' + hashParts[0];
       }
 
       // If there are subobjects appended after the channel in the hash string
@@ -94,15 +90,19 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
           const part = hashParts[i];
           if (part.startsWith('#line') || part.startsWith('£id')) {
             subobject = part;
-          } else if (part.startsWith('∆sent') || part.startsWith('∆received')) {
-            // Handle property appended to event, e.g. ∆sent§author
+          } else if (part.startsWith('∆')) {
+            // Handle property appended to event, e.g. ∆id§created
             if (part.includes('§')) {
               const split = part.split('§');
               event = split[0];
-              property = split[1];
+              property = '§' + split[1];
             } else {
               event = part;
             }
+          } else if (part.startsWith('§')) {
+            property = part;
+          } else if (part.startsWith('$')) {
+            serverContext = part;
           }
         }
       } else if (channel && hashParts.length === 1 && (hashParts[0].startsWith('#line') || hashParts[0].startsWith('£id'))) {
@@ -113,24 +113,6 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
       }
     }
 
-    // Extract subobjects and events from standard paths if they exist
-    for (let i = paths.length - 1; i >= 0; i--) {
-      const part = paths[i];
-      if (part.startsWith('#line') || part.startsWith('£id')) {
-        subobject = part;
-        paths.splice(i, 1);
-      } else if (part.startsWith('∆sent') || part.startsWith('∆received')) {
-        if (part.includes('§')) {
-          const split = part.split('§');
-          event = split[0];
-          property = split[1];
-        } else {
-          event = part;
-        }
-        paths.splice(i, 1);
-      }
-    }
-    
     // Check if the last path segment is a channel definition (e.g. @user, §channel, $channel)
     if (!channel && paths.length > 0) {
        const lastPath = paths[paths.length - 1];
@@ -147,6 +129,30 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
          channel = lastPath.substring(1); // strip '$' prefix
          paths.pop();
        }
+    }
+
+    // Extract subobjects and events from standard paths if they exist
+    for (let i = paths.length - 1; i >= 0; i--) {
+      const part = paths[i];
+      if (part.startsWith('#line') || part.startsWith('£id')) {
+        subobject = part;
+        paths.splice(i, 1);
+      } else if (part.startsWith('∆')) {
+        if (part.includes('§')) {
+          const split = part.split('§');
+          event = split[0];
+          property = '§' + split[1];
+        } else {
+          event = part;
+        }
+        paths.splice(i, 1);
+      } else if (part.startsWith('§')) {
+        property = part;
+        paths.splice(i, 1);
+      } else if (part.startsWith('$')) {
+        serverContext = part;
+        paths.splice(i, 1);
+      }
     }
     
     // Sanitize modes from channel string (+xyz-abc)
@@ -191,6 +197,7 @@ export function parseIvcUri(uri: string): IvcUriDetails | null {
       subobject,
       event,
       property,
+      serverContext,
       params, 
       isSecure: true // Default to WSS/HTTPS
     };

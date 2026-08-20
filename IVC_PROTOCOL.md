@@ -109,10 +109,13 @@ Individual messages inside an addressable object can be queried via:
 * `/#line[number]`: Address a message by its ordinal line number (e.g., `ivc://#general/#line5`).
 * `/£id[string]`: Address a message by its unique ID (e.g., `ivc://@jakedot/£id123abc`).
 
-### Metadata Event Streams
-Event streams for message states can be monitored by appending:
-* `/∆sent`: Emits events specifically when messages are dispatched to the target.
-* `/∆received`: Emits events specifically when messages are acknowledged by the target.
+### Metadata Event Streams and Properties
+Event streams for object states and properties can be monitored by appending modifiers:
+* `/∆[event]`: Maps to specific metadata events (e.g. `/∆sent`, `/∆received`, `/∆id`).
+* `/§[property]`: Selects or filters by a specific property (e.g. `/§created`, `/§modified`).
+* `/$[context]`: Specifies server or network context actions (e.g. `/$create_server`).
+
+These can be combined contextually, such as `ivc://£cluster$server#general/∆id§created` (Querying the `∆id` event mapped to the `§created` property).
 
 **Example:** `ivc://@jakedot/£id123abc/∆received` (Querying the received metadata event for a specific message ID in a user's channel).
 
