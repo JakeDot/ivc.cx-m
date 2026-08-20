@@ -20,9 +20,11 @@ export class IvcNetworkClient {
   
   private listeners: Set<Listener> = new Set();
 
-  public addListener(listener: Listener) {
+  public addListener(listener: Listener): () => void {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   // Backwards compatibility for single listener assignments
