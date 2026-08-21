@@ -588,6 +588,7 @@ export default function App() {
               onClick={handleLogout}
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
               title="Sign out"
+              aria-label="Sign out"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -1177,6 +1178,7 @@ export default function App() {
               <button 
                 onClick={() => setIsPreviewModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-200 transition-colors"
+                aria-label="Close Preview Modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1226,6 +1228,7 @@ export default function App() {
               <button 
                 onClick={() => setIsScheduleModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-200 transition-colors"
+                aria-label="Close Schedule Modal"
               >
                 <X className="w-5 h-5" />
               </button>

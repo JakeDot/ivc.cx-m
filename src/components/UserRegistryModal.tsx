@@ -85,10 +85,10 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={fetchUsers} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors">
+            <button onClick={fetchUsers} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors" aria-label="Refresh Users">
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors">
+            <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors" aria-label="Close Modal">
               <X className="w-4 h-4" />
             </button>
           </div>

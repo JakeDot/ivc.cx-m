@@ -79,7 +79,7 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
               <p className="text-xs text-slate-400">Zero-Trust Cryptographic Engine</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors" aria-label="Close Modal">
             <X className="w-4 h-4" />
           </button>
         </div>
