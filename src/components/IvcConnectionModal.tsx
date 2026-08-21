@@ -50,6 +50,7 @@ export function IvcConnectionModal({ isOpen, onClose, status }: IvcConnectionMod
           <button 
             onClick={onClose}
             className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-200 transition-colors"
+            aria-label="Close Modal"
           >
             <X className="w-5 h-5" />
           </button>
