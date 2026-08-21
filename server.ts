@@ -580,6 +580,13 @@ async function startServer() {
     if (!channelRaw) {
       return next();
     }
+
+    if (channelRaw.startsWith('/')) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
     
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
