@@ -484,14 +484,25 @@ export default function App() {
   }, [filteredSentLogs, startDate, endDate]);
 
   const chartData = useMemo(() => {
-    const counts: Record<string, { date: string; success: number; error: number }> = {};
+    // ⚡ Bolt: Cache raw timestamp numeric value alongside the formatted date
+    // to avoid O(n log n) string date parsing during the `.sort()` operation.
+    const counts: Record<string, { date: string; timestampMs: number; success: number; error: number }> = {};
     dateFilteredSentLogs.forEach(log => {
-      const dateStr = format(new Date(log.timestamp), 'MMM dd');
-      if (!counts[dateStr]) counts[dateStr] = { date: dateStr, success: 0, error: 0 };
+      const logDate = new Date(log.timestamp);
+      const dateStr = format(logDate, 'MMM dd');
+      if (!counts[dateStr]) {
+        counts[dateStr] = {
+          date: dateStr,
+          // Use startOfDay equivalent value to keep order deterministic per day
+          timestampMs: new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()).getTime(),
+          success: 0,
+          error: 0
+        };
+      }
       counts[dateStr][log.status]++;
     });
-    // Return sorted by date
-    return Object.values(counts).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Return sorted by cached numeric timestamp
+    return Object.values(counts).sort((a, b) => a.timestampMs - b.timestampMs);
   }, [dateFilteredSentLogs]);
 
   const handleDownloadCSV = () => {
