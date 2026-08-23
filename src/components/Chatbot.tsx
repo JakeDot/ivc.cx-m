@@ -76,6 +76,7 @@ export function Chatbot() {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 p-4 bg-indigo-600 text-white rounded-full shadow-xl hover:bg-indigo-700 transition-all hover:scale-105 z-50 flex items-center justify-center"
         title="Open AI Chatbot"
+        aria-label="Open AI Chatbot"
       >
         <MessageSquare className="w-6 h-6" />
       </button>
@@ -92,13 +93,13 @@ export function Chatbot() {
           <h3 className="font-bold text-slate-800">AI Assistant</h3>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => setShowSettings(!showSettings)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-200 rounded-md transition-colors" title="Settings">
+          <button onClick={() => setShowSettings(!showSettings)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-200 rounded-md transition-colors" title="Settings" aria-label="Settings">
             <Settings className="w-4 h-4" />
           </button>
-          <button onClick={() => setIsExpanded(!isExpanded)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-md transition-colors" title={isExpanded ? "Minimize" : "Expand"}>
+          <button onClick={() => setIsExpanded(!isExpanded)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-md transition-colors" title={isExpanded ? "Minimize" : "Expand"} aria-label={isExpanded ? "Minimize" : "Expand"}>
             {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
-          <button onClick={() => setIsOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-md transition-colors" title="Close">
+          <button onClick={() => setIsOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-md transition-colors" title="Close" aria-label="Close Chatbot">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -179,6 +180,7 @@ export function Chatbot() {
             type="submit"
             disabled={!input.trim() || isLoading}
             className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0"
+            aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>
