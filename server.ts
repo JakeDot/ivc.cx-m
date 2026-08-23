@@ -307,7 +307,9 @@ async function startServer() {
       
       // Bridge the command to the React frontend via Server-Sent Events (SSE)
       // The frontend holds the Gmail OAuth token and will execute the send with user confirmation.
-      sseClients.forEach(c => c.write(`data: ${JSON.stringify({ type: 'ivc_command', sender, command })}\n\n`));
+      // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
+      const eventPayload = `data: ${JSON.stringify({ type: 'ivc_command', sender, command })}\n\n`;
+      sseClients.forEach(c => c.write(eventPayload));
       
       res.json({ 
         status: "dispatched", 
@@ -489,13 +491,15 @@ async function startServer() {
     
     saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
-    sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
+    // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
+    const eventPayload = `data: ${JSON.stringify({
       type: 'ivc_server_mode', 
       action: action,
       modes: modes, 
       active_modes: activeModesStr,
       sender: ivcUser
-    })}\n\n`));
+    })}\n\n`;
+    sseClients.forEach(c => c.write(eventPayload));
 
     res.json({ 
       status: "global_modes_updated", 
@@ -544,14 +548,16 @@ async function startServer() {
     
     saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
-    sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
+    // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
+    const eventPayload = `data: ${JSON.stringify({
       type: 'ivc_mode_update', 
       action: action,
       modes: modes, 
       active_modes: activeModesStr,
       target: target,
       sender: ivcUser
-    })}\n\n`));
+    })}\n\n`;
+    sseClients.forEach(c => c.write(eventPayload));
 
     res.json({ 
       status: "modes_updated", 
@@ -597,11 +603,13 @@ async function startServer() {
       console.log(`[IVC API] Direct POST to apply server modes: +${modes}`, payload);
 
       // Broadcast as a server mode update
-      sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
+      // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
+      const eventPayload = `data: ${JSON.stringify({
         type: 'ivc_server_mode', 
         modes: modes, 
         payload: payload 
-      })}\n\n`));
+      })}\n\n`;
+      sseClients.forEach(c => c.write(eventPayload));
 
       return res.json({ status: "server_modes_applied", modes: modes, applied_payload: payload });
     }
@@ -623,12 +631,14 @@ async function startServer() {
     console.log(`[IVC API] Direct POST to channel: ${channelRaw} by ${ivcUser}`, payload);
 
     // Broadcast the post to all connected SSE clients
-    sseClients.forEach(c => c.write(`data: ${JSON.stringify({ 
+    // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
+    const eventPayload = `data: ${JSON.stringify({
       type: 'ivc_post', 
       channel: channelRaw, 
       payload: payload,
       sender: ivcUser
-    })}\n\n`));
+    })}\n\n`;
+    sseClients.forEach(c => c.write(eventPayload));
 
     res.json({ status: "posted", channel: channelRaw, received: payload });
   });
