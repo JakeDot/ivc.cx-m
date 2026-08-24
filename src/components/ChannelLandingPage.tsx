@@ -200,6 +200,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message ${channelRaw}...`}
+              aria-label={`Message ${channelRaw}`}
               className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
               disabled={isSending}
             />
