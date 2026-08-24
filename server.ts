@@ -387,6 +387,7 @@ async function startServer() {
           "Content-Type": "application/json",
           "Host": originalHostname
         },
+        redirect: "error", // SSRF Protection: Prevent following redirects to internal IPs
         body: JSON.stringify({
           action: "register",
           service_name: "NOTIFYBOT",
@@ -409,7 +410,7 @@ async function startServer() {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
     
     // Check if the user string contains +a (Admin)
-    if (!ivcUser.includes('+') || !ivcUser.split('+')[1].includes('a')) {
+    if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
       return res.status(403).json({ 
         error: 'Forbidden', 
         message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.' 
@@ -441,7 +442,7 @@ async function startServer() {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
     
     // Check if the user string contains +a (e.g. @jake+a)
-    if (!ivcUser.includes('+') || !ivcUser.split('+')[1].includes('a')) {
+    if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
       return res.status(403).json({ 
         error: 'Forbidden', 
         message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.' 
@@ -468,7 +469,7 @@ async function startServer() {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
     
     // Require +a (Admin) to change global server modes
-    if (!ivcUser.includes('+') || !ivcUser.split('+')[1].includes('a')) {
+    if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
       return res.status(403).json({ 
         error: 'Forbidden', 
         message: 'This endpoint requires Admin (+a) privileges to change global server modes. Supply X-IVC-User header.' 
@@ -520,7 +521,7 @@ async function startServer() {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
     
     // Require +o (Operator) or +a (Admin) to change modes
-    if (!ivcUser.includes('+') || (!ivcUser.split('+')[1].includes('o') && !ivcUser.split('+')[1].includes('a'))) {
+    if (!ivcUser.includes('+') || (!ivcUser.substring(ivcUser.indexOf('+') + 1).includes('o') && !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a'))) {
       return res.status(403).json({ 
         error: 'Forbidden', 
         message: 'This endpoint requires Operator (+o) or Admin (+a) privileges. Supply X-IVC-User header.' 
@@ -596,7 +597,7 @@ async function startServer() {
     
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
-    const userModes = ivcUser.includes('+') ? ivcUser.split('+')[1] : '';
+    const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
 
     if (channelRaw.startsWith('+')) {
       const modes = channelRaw.substring(1); // e.g. 'xyz'
