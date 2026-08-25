@@ -172,8 +172,9 @@ async function startServer() {
     }
 
     // 1. Replay Protection (5 minute window)
-    if (Math.abs(Date.now() - parseInt(timestamp)) > 5 * 60 * 1000) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Payload timestamp expired.' });
+    const parsedTimestamp = parseInt(timestamp);
+    if (isNaN(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > 5 * 60 * 1000) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Payload timestamp invalid or expired.' });
     }
 
     // Parse base username (strip out any modes they try to spoof in the header)
