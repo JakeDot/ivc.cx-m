@@ -133,8 +133,10 @@ export default function App() {
            dispatchEmail(task.to, compiled.subject, compiled.body, task.type, task.meta, task.priority || 'normal', undefined, true);
         });
         
+        // ⚡ Bolt: Cache task IDs in a Set for O(1) lookup instead of O(n) .find() on every iteration
+        const runTaskIds = new Set(tasksToRun.map(run => run.id));
         setScheduledTasks(prev => prev.map(t => 
-          tasksToRun.find(run => run.id === t.id) ? { ...t, lastRun: todayDateStr } : t
+          runTaskIds.has(t.id) ? { ...t, lastRun: todayDateStr } : t
         ));
       }
     }, 15000); // Check every 15s to guarantee we hit the correct minute
