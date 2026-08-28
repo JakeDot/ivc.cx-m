@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -592,6 +593,17 @@ async function startServer() {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
+
+    // SSRF / Auth Bypass Protection: Channel MUST start with a valid routing symbol
+    // otherwise the post is sent to a raw string path, skipping ZTCIE middleware
+    const validSymbols = ['+', '-', '#', '@', '$', '§', '∆', '~', '£'];
+    const hasValidSymbol = validSymbols.some(symbol => channelRaw.startsWith(symbol));
+    if (!hasValidSymbol) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Must start with a valid routing symbol."
       });
     }
     
