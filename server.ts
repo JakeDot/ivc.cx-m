@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -595,6 +596,14 @@ async function startServer() {
       });
     }
     
+    // Enforce valid routing symbol for direct posts
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Channels must begin with a valid routing symbol (+, -, #, @, $, §, ∆, ~, £)."
+      });
+    }
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
