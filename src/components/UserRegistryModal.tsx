@@ -44,8 +44,16 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
 
   const toggleMode = async (username: string, currentModes: string, modeToToggle: string) => {
     try {
-      setStatus(`Modifying ${modeToToggle} for @${username}...`);
       const isAdding = !currentModes.includes(modeToToggle);
+
+      if (!isAdding && (modeToToggle === 'a' || modeToToggle === 'o')) {
+        const modeName = modeToToggle === 'a' ? 'Admin' : 'Operator';
+        if (!window.confirm(`Are you sure you want to remove ${modeName} privileges from @${username}? This is a destructive action.`)) {
+          return;
+        }
+      }
+
+      setStatus(`Modifying ${modeToToggle} for @${username}...`);
       const action = isAdding ? '+' : '-';
       
       const uri = `/${action}${modeToToggle}/@${username}`;
@@ -146,22 +154,25 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                         <div className="flex justify-end gap-1.5">
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'o')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-offset-1 ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Operator"
+                            aria-label={`Toggle Operator for ${u.username}`}
                           >
                             {u.modes.includes('o') ? '-o' : '+o'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'a')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-offset-1 ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Admin"
+                            aria-label={`Toggle Admin for ${u.username}`}
                           >
                             {u.modes.includes('a') ? '-a' : '+a'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'v')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-offset-1 ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Voice"
+                            aria-label={`Toggle Voice for ${u.username}`}
                           >
                             {u.modes.includes('v') ? '-v' : '+v'}
                           </button>
