@@ -573,21 +573,21 @@ export default function App() {
             </span>
           </div>
           <div className="h-4 w-px bg-slate-300"></div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => setIsIvcModalOpen(true)}>
+          <button className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1" onClick={() => setIsIvcModalOpen(true)}>
             <Network className="w-3.5 h-3.5" />
             <span>
               IVC Network: {ivcStatus === 'connecting' ? 'Connecting...' : ivcStatus === 'connected' ? 'Connected' : 'Offline'}
             </span>
             <div className={`w-2 h-2 rounded-full ml-1 ${ivcStatus === 'connected' ? 'bg-green-500' : ivcStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-400'}`}></div>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors" onClick={() => setIsUserRegistryOpen(true)}>
+          </button>
+          <button className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1" onClick={() => setIsUserRegistryOpen(true)}>
             <Users className="w-3.5 h-3.5" />
             <span>Users</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setIsModeModalOpen(true)}>
+          </button>
+          <button className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1" onClick={() => setIsModeModalOpen(true)}>
             <Settings className="w-3.5 h-3.5" />
             <span>Manage Modes</span>
-          </div>
+          </button>
         </div>
         
         {user && !needsAuth && (
