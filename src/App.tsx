@@ -66,6 +66,9 @@ export default function App() {
 
   useEffect(() => {
     setCurrentPath(decodeURIComponent(window.location.pathname));
+    const handlePopState = () => setCurrentPath(decodeURIComponent(window.location.pathname));
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const [needsAuth, setNeedsAuth] = useState(true);
