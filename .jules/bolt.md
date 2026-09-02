@@ -9,3 +9,7 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+
+## 2025-05-26 - Unnecessary Uint8Array wrappers for tweetnacl buffers
+**Learning:** In Node.js environments, functions in libraries like `tweetnacl` (e.g. `nacl.sign.detached.verify`) accept `Uint8Array` inputs. Because Node's native `Buffer` class extends `Uint8Array`, wrapping a `Buffer` in `new Uint8Array(Buffer.from(...))` or using `new TextEncoder().encode()` creates redundant memory allocations and garbage collection pressure in hot paths (like per-request middleware).
+**Action:** When working in Node.js backend code, pass `Buffer` instances directly into methods expecting `Uint8Array` to avoid costly and unnecessary memory allocations.
