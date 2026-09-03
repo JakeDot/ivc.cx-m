@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -592,6 +593,15 @@ async function startServer() {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
+
+    // Enforce valid routing symbol for direct posting API
+    const firstChar = channelRaw.charAt(0);
+    if (!['+', '-', '#', '@', '$', '§', '∆', '~', '£'].includes(firstChar)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Channel must begin with a valid routing symbol."
       });
     }
     
