@@ -66,11 +66,14 @@ export function ChannelLandingPage({ path }: { path: string }) {
     // Clear messages when channel changes
     setMessages([]);
     
+    // ⚡ Bolt: Cache encoded string outside listener loop to avoid O(N) redundant parsing
+    const encodedChannelRaw = encodeURIComponent(channelRaw);
+
     // Subscribe to SSE
     const unsubscribe = ivcClient.addListener((msg) => {
       // Decode channel names correctly if they are URL encoded by SSE server
       let msgChannel = msg.channel || '';
-      if (msgChannel === channelRaw || msgChannel === encodeURIComponent(channelRaw)) {
+      if (msgChannel === channelRaw || msgChannel === encodedChannelRaw) {
         setMessages(prev => [...prev, msg]);
       }
     });

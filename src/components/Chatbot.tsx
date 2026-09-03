@@ -13,7 +13,9 @@ const MODELS = [
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Fast)' }
 ];
 
-export function Chatbot() {
+// ⚡ Bolt: Memoize heavy Chatbot component (which includes Markdown rendering)
+// to prevent unnecessary re-renders when parent App.tsx state changes (e.g. typing in search)
+export const Chatbot = React.memo(function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -191,4 +193,4 @@ export function Chatbot() {
       </div>
     </div>
   );
-}
+});
