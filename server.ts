@@ -184,9 +184,10 @@ async function startServer() {
     const message = `${timestamp}:${req.method}:${req.path}:${req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : ''}`;
     
     try {
-      const msgUint8 = new TextEncoder().encode(message);
-      const sigUint8 = new Uint8Array(Buffer.from(signatureBase64, 'base64'));
-      const pubKeyUint8 = new Uint8Array(Buffer.from(pubKeyBase64, 'base64'));
+      // ⚡ Bolt: Use Buffer directly instead of new Uint8Array/TextEncoder to avoid redundant memory allocation
+      const msgUint8 = Buffer.from(message, 'utf-8');
+      const sigUint8 = Buffer.from(signatureBase64, 'base64');
+      const pubKeyUint8 = Buffer.from(pubKeyBase64, 'base64');
 
       const isValid = nacl.sign.detached.verify(msgUint8, sigUint8, pubKeyUint8);
       if (!isValid) throw new Error('Invalid Ed25519 signature');
