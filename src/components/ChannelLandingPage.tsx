@@ -206,7 +206,8 @@ export function ChannelLandingPage({ path }: { path: string }) {
             <button 
               type="submit"
               disabled={!inputText.trim() || isSending}
-              className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+              className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+              aria-label="Send message"
             >
               <Send className="w-5 h-5" />
             </button>
