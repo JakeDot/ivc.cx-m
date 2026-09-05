@@ -594,6 +594,14 @@ async function startServer() {
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
     }
+
+    // Ensure channel starts with a valid routing symbol to prevent ZTCIE bypass
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Channels must begin with a valid routing symbol (+, -, #, @, $, §, ∆, ~, £)."
+      });
+    }
     
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
