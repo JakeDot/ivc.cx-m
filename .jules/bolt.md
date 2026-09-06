@@ -9,3 +9,6 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+## 2024-09-06 - Optimized Backend Cryptographic Memory Allocations
+**Learning:** In Node.js, `Buffer` natively inherits from `Uint8Array`. Double-allocating via `new Uint8Array(Buffer.from(..., 'base64'))` or using `new TextEncoder().encode()` creates unnecessary memory overhead on high-throughput backend routes dealing with cryptographic operations (like Ed25519 signatures).
+**Action:** When working with TweetNaCl or other libraries accepting `Uint8Array` in a Node.js backend environment, pass `Buffer` directly (e.g. `Buffer.from(payload, 'utf-8')` or `Buffer.from(b64, 'base64')`) to avoid intermediate allocations and performance bottlenecks.
