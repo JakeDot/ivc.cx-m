@@ -674,11 +674,12 @@ export default function App() {
 
               {templates.length > 0 && (
                 <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-sm whitespace-nowrap">
+                  <label htmlFor="template-select" className="flex items-center gap-1.5 text-slate-700 font-semibold text-sm whitespace-nowrap">
                     <FileText className="w-4 h-4" />
                     <span>Load Template:</span>
-                  </div>
+                  </label>
                   <select
+                    id="template-select"
                     onChange={(e) => {
                       if (e.target.value) {
                         const t = templates.find(t => t.id === e.target.value);
@@ -741,10 +742,11 @@ export default function App() {
               <form onSubmit={handleSendManual} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    <label htmlFor="event-type" className="block text-sm font-semibold text-slate-700 mb-1.5">
                       Event Type
                     </label>
                     <select 
+                      id="event-type"
                       value={notifyType}
                       onChange={(e: any) => setNotifyType(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -757,10 +759,11 @@ export default function App() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    <label htmlFor="event-priority" className="block text-sm font-semibold text-slate-700 mb-1.5">
                       Priority
                     </label>
                     <select 
+                      id="event-priority"
                       value={priority}
                       onChange={(e: any) => setPriority(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -773,8 +776,8 @@ export default function App() {
                   
                   {notifyType === 'channel' && (
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Channel Name</label>
-                      <input type="text" value={eventMeta} onChange={e => {
+                      <label htmlFor="channel-name" className="block text-sm font-semibold text-slate-700 mb-1.5">Channel Name</label>
+                      <input id="channel-name" type="text" value={eventMeta} onChange={e => {
                         const val = e.target.value;
                         setEventMeta(val);
                         const cleanChannel = val.startsWith('#') ? val : `#${val}`;
@@ -784,8 +787,8 @@ export default function App() {
                   )}
                   {notifyType === 'user' && (
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Target Username</label>
-                      <input type="text" value={eventMeta} onChange={e => setEventMeta(e.target.value)} placeholder="Username" required className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500" />
+                      <label htmlFor="target-username" className="block text-sm font-semibold text-slate-700 mb-1.5">Target Username</label>
+                      <input id="target-username" type="text" value={eventMeta} onChange={e => setEventMeta(e.target.value)} placeholder="Username" required className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500" />
                     </div>
                   )}
                 </div>
@@ -1247,10 +1250,11 @@ export default function App() {
             
             <form onSubmit={handleSaveSchedule} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="schedule-name" className="block text-sm font-semibold text-slate-700 mb-1.5">
                   Task Name
                 </label>
                 <input
+                  id="schedule-name"
                   type="text"
                   value={scheduleName}
                   onChange={(e) => setScheduleName(e.target.value)}
@@ -1261,10 +1265,11 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="schedule-time" className="block text-sm font-semibold text-slate-700 mb-1.5">
                   Time of Day (Local Time)
                 </label>
                 <input
+                  id="schedule-time"
                   type="time"
                   value={scheduleTime}
                   onChange={(e) => setScheduleTime(e.target.value)}
