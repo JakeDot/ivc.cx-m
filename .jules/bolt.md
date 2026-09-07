@@ -9,3 +9,6 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+## 2025-03-08 - Optimize SSE Connection Pool Tracking
+**Learning:** Found an $O(N)$ performance bottleneck and memory churn issue in the Server-Sent Events (SSE) connection tracking. Using an Array (`express.Response[]`) and `.filter()` to remove disconnected clients requires allocating a new array and iterating over all connections every time a client disconnects. This scales poorly under high concurrency.
+**Action:** Always use a `Set` for tracking active connections or clients. `Set.add()` and `Set.delete()` operate in $O(1)$ time and prevent unnecessary garbage collection overhead by modifying the pool in place.
