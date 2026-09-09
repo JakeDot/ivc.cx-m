@@ -17,3 +17,8 @@
 **Vulnerability:** The application prevented SSRF by validating the provided `ivc_host` against local IP addresses and using the resolved IP to prevent DNS rebinding. However, the subsequent `fetch()` call to register the service omitted `redirect: "error"`. If the external server (which successfully bypassed IP checks) returned a 302 Redirect to a local IP address (e.g., `http://127.0.0.1/admin`), `fetch()` would automatically follow it, bypassing the application-level SSRF checks entirely.
 **Learning:** Checking the initial requested IP is insufficient for SSRF protection because HTTP clients often follow redirects automatically. A seemingly safe external domain can easily redirect to an internal or restricted network endpoint.
 **Prevention:** Always set `redirect: "error"` or `redirect: "manual"` when making HTTP requests (such as with `fetch()`) in SSRF-sensitive contexts. If redirects must be supported, each redirect URI must be recursively subjected to the same strict IP validation logic before being followed.
+
+## 2025-03-09 - [CRITICAL] Authentication bypass in direct posting API
+**Vulnerability:** The `app.post('/*')` endpoint allowed posting to channels without any IVC routing symbols (e.g. `/fakeChannel`). The ZTCIE authentication middleware only intercepted requests that started with valid IVC symbols. This allowed attackers to bypass authentication entirely and post to unauthenticated channels.
+**Learning:** Wildcard catch-all routes must perform the same input validation as upstream authentication middleware to prevent bypass vulnerabilities.
+**Prevention:** Always ensure that downstream endpoints strictly validate required path formats (like IVC routing symbols) when selective authentication middleware is used upstream.
