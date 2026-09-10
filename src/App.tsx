@@ -1027,14 +1027,20 @@ export default function App() {
                         <button 
                           onClick={() => executePending(item)}
                           disabled={isSending}
-                          className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50 flex justify-center items-center gap-1"
+                          className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50 flex justify-center items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                          aria-label={`Send pending notification to ${item.to}`}
                         >
                           <Send className="w-3 h-3" /> Send
                         </button>
                         <button 
-                          onClick={() => dismissPending(item.id)}
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to dismiss this pending notification?")) {
+                              dismissPending(item.id);
+                            }
+                          }}
                           disabled={isSending}
-                          className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50"
+                          className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                          aria-label={`Dismiss pending notification for ${item.subject}`}
                         >
                           Dismiss
                         </button>
