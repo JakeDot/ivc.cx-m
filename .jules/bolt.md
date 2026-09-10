@@ -9,3 +9,7 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+
+## 2025-05-25 - Use Set for O(1) connection tracking
+**Learning:** Using an Array to track active client connections (like Server-Sent Events via `express.Response[]`) leads to O(N) memory churn and CPU overhead upon client disconnects when using `array.filter(c => c !== res)` to remove them.
+**Action:** Always use a `Set` instead of an `Array` for tracking active server connections or connection pools. This provides O(1) removal via `Set.prototype.delete()` and avoids unnecessary array allocations.
