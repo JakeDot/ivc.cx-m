@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -595,6 +596,15 @@ async function startServer() {
       });
     }
     
+    // Sentinel: Require a valid IVC routing symbol to ensure ZTCIE has authenticated this request.
+    // If we accept naked channels like /general, it bypasses the ZTCIE cryptographic checks upstream.
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel prefix. Channels must begin with a recognized IVC routing symbol."
+      });
+    }
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
