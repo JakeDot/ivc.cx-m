@@ -1,3 +1,6 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+## 2025-05-18 - Accessibility and Loading States on Chat Inputs
+**Learning:** Found that the chat message input form lacked `aria-labels` for both the input field and the icon-only send button. Furthermore, when submitting a message, the button only changed opacity without a clear visual loading indicator, leaving the user uncertain about the network status.
+**Action:** Always provide explicit `aria-label` attributes to text inputs and icon-only buttons. For async actions like sending messages, visually replace the send icon with a spinning loader (e.g., `RefreshCw animate-spin`) to provide immediate feedback, and ensure the button has clear keyboard focus indicators (`focus-visible:ring`).
