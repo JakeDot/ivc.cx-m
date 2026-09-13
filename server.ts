@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -586,6 +587,17 @@ async function startServer() {
     const channelRaw = decodeURIComponent(req.path.substring(1)); // remove leading slash
     if (!channelRaw) {
       return next();
+    }
+
+    // 🛡️ Sentinel: Enforce valid IVC routing symbols.
+    // Prevents bypass of the Zero-Trust Cryptographic Identity Engine (ZTCIE)
+    // for wildcard routes that downstream handlers may otherwise accept.
+    const validSymbols = ['+', '-', '#', '@', '$', '§', '∆', '~', '£'];
+    if (!validSymbols.some(sym => channelRaw.startsWith(sym))) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Channel must begin with a valid routing symbol."
+      });
     }
 
     if (channelRaw.startsWith('/')) {
