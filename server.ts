@@ -157,6 +157,7 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
+      !fullyDecodedPath.startsWith('/£') &&
       !fullyDecodedPath.startsWith('/~')
     ) {
       return next();
@@ -586,6 +587,14 @@ async function startServer() {
     const channelRaw = decodeURIComponent(req.path.substring(1)); // remove leading slash
     if (!channelRaw) {
       return next();
+    }
+
+    // Enforce that channels must start with a valid routing symbol
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Missing routing symbol."
+      });
     }
 
     if (channelRaw.startsWith('/')) {
