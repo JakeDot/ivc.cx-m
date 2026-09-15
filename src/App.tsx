@@ -4,7 +4,7 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
+import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
@@ -635,15 +635,21 @@ export default function App() {
                 <div className="gsi-material-button-state"></div>
                 <div className="gsi-material-button-content-wrapper flex items-center gap-3 px-4 py-2 border border-slate-300 rounded hover:bg-slate-50 transition-colors cursor-pointer bg-white">
                   <div className="gsi-material-button-icon">
-                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5 block">
-                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                      <path fill="none" d="M0 0h48v48H0z"></path>
-                    </svg>
+                    {isLoggingIn ? (
+                      <RefreshCw className="w-5 h-5 animate-spin text-slate-600" />
+                    ) : (
+                      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5 block">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                        <path fill="none" d="M0 0h48v48H0z"></path>
+                      </svg>
+                    )}
                   </div>
-                  <span className="gsi-material-button-contents font-medium text-slate-600">Sign in with Google</span>
+                  <span className="gsi-material-button-contents font-medium text-slate-600">
+                    {isLoggingIn ? "Signing in..." : "Sign in with Google"}
+                  </span>
                 </div>
               </button>
             </div>
@@ -849,7 +855,10 @@ export default function App() {
                     className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                   >
                     {isSending ? (
-                      'Sending...'
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span>Sending...</span>
+                      </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
@@ -996,7 +1005,7 @@ export default function App() {
                             className="flex items-center gap-1 text-[10px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-2 py-1 rounded transition-colors disabled:opacity-50 shadow-sm"
                             title="Execute all pending notifications sequentially"
                           >
-                            <ListChecks className="w-3 h-3" /> Bulk Send
+                            {isSending ? <RefreshCw className="w-3 h-3 animate-spin" /> : <ListChecks className="w-3 h-3" />} Bulk Send
                           </button>
                         )}
                         <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -1029,7 +1038,7 @@ export default function App() {
                           disabled={isSending}
                           className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50 flex justify-center items-center gap-1"
                         >
-                          <Send className="w-3 h-3" /> Send
+                          {isSending ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />} Send
                         </button>
                         <button 
                           onClick={() => dismissPending(item.id)}
