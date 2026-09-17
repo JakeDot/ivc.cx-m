@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -588,10 +589,12 @@ async function startServer() {
       return next();
     }
 
-    if (channelRaw.startsWith('/')) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "Posting to reserved channels prefixed with '/' is not allowed."
+    // Security: Ensure downstream endpoints validate required path formats
+    // when selective authentication middleware (ZTCIE) is used upstream.
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Channels must begin with a valid routing symbol."
       });
     }
     
