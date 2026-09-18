@@ -13,6 +13,26 @@ const MODELS = [
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Fast)' }
 ];
 
+// ⚡ Bolt: Memoize individual chat messages to prevent O(N) re-renders
+// Since the Chatbot state (input) changes on every keystroke, React would normally
+// re-render the entire message list. ReactMarkdown is expensive to parse and render.
+// Wrapping the message component in React.memo() ensures each message only renders once.
+const ChatMessage = React.memo(({ msg }: { msg: Message }) => {
+  return (
+    <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'}`}>
+        {msg.role === 'assistant' ? (
+          <div className="markdown-body prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 prose-pre:text-slate-800">
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap">{msg.content}</p>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -136,17 +156,7 @@ export function Chatbot() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'}`}>
-              {msg.role === 'assistant' ? (
-                <div className="markdown-body prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 prose-pre:text-slate-800">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              )}
-            </div>
-          </div>
+          <ChatMessage key={i} msg={msg} />
         ))}
         {isLoading && (
           <div className="flex justify-start">
