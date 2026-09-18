@@ -594,6 +594,16 @@ async function startServer() {
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
     }
+
+    // SSRF/Auth Bypass Prevention: Enforce valid IVC routing symbol prefix
+    // Only accept channels that begin with a registered routing symbol, otherwise
+    // upstream ZTCIE authentication could be bypassed for arbitrary local routes.
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel path. Channel must begin with a valid routing symbol (+, -, #, @, $, §, ∆, ~, £)."
+      });
+    }
     
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
