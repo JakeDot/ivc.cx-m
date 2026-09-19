@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Hash, User, Shield, FileText, Activity, Settings, UserCircle, ShieldAlert, Send, Key } from 'lucide-react';
+import { Hash, User, Shield, FileText, Activity, Settings, UserCircle, ShieldAlert, Send, Key, RefreshCw } from 'lucide-react';
 import { ivcClient, IvcMessage } from '../lib/ivcClient';
 import { ivcIdentity } from '../lib/ivcIdentity';
 
@@ -200,15 +200,21 @@ export function ChannelLandingPage({ path }: { path: string }) {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message ${channelRaw}...`}
+              aria-label="Message text"
               className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
               disabled={isSending}
             />
             <button 
               type="submit"
               disabled={!inputText.trim() || isSending}
-              className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+              aria-label="Send message"
+              className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
             >
-              <Send className="w-5 h-5" />
+              {isSending ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
             </button>
           </form>
           <div className="mt-2 text-center">
