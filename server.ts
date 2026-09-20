@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -592,6 +593,14 @@ async function startServer() {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
+
+    // Enforce valid IVC routing symbol to prevent ZTCIE bypass on plain text channels
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Channels must start with a valid routing symbol."
       });
     }
     
