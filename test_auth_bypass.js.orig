@@ -6,7 +6,7 @@ async function testAuthBypass() {
   const testCases = [
     { path: '/+test', expectedStatus: 401 },
     { path: '/-test', expectedStatus: 401 },
-    { path: '/%23test', expectedStatus: 401 },
+    { path: '/#test', expectedStatus: 401 },
     { path: '/@test', expectedStatus: 401 },
     { path: '/$test', expectedStatus: 401 },
     { path: '/%C2%A7test', expectedStatus: 401 }, // § is URL-encoded

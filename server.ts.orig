@@ -21,7 +21,7 @@ async function loadState() {
 }
 
 async function saveState(
-  globalModes: Set<string>, 
+  globalModes: Set<string>,
   targetModesMap: Map<string, Set<string>>,
   userRegistry: Map<string, string>,
   userModesRegistry: Map<string, Set<string>>
@@ -30,12 +30,12 @@ async function saveState(
   for (const [target, modes] of targetModesMap.entries()) {
     targetModesObj[target] = Array.from(modes);
   }
-  
+
   const userRegistryObj: Record<string, string> = {};
   for (const [user, key] of userRegistry.entries()) {
     userRegistryObj[user] = key;
   }
-  
+
   const userModesObj: Record<string, string[]> = {};
   for (const [user, modes] of userModesRegistry.entries()) {
     userModesObj[user] = Array.from(modes);
@@ -47,7 +47,7 @@ async function saveState(
     userRegistry: userRegistryObj,
     userModesRegistry: userModesObj
   };
-  
+
   try {
     await fs.writeFile(STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
   } catch (err) {
@@ -65,7 +65,7 @@ async function startServer() {
   const targetModesState = new Map<string, Set<string>>();
   const userRegistry = new Map<string, string>();
   const userModesRegistry = new Map<string, Set<string>>();
-  
+
   if (initialState.targetModes) {
     for (const [target, modes] of Object.entries(initialState.targetModes)) {
       targetModesState.set(target, new Set(modes as string[]));
@@ -98,7 +98,7 @@ async function startServer() {
         // Fallback to request host
       }
     }
-      
+
     // Get the user from X-IVC-User header, fallback to anonymous
     let user = req.headers['x-ivc-user'] as string || 'anonymous';
     // Clean up the user if it's a full URI (e.g. ivc://@jakedot)
@@ -107,28 +107,28 @@ async function startServer() {
     } else if (user.startsWith('@')) {
       user = user.substring(1);
     }
-    
+
     // Determine the channels (from path if it's a channel post)
     let channels = '';
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
-      if (/^[#@$§∆~£]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
+      if (/^[#@$§∆~]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
     }
-    
+
     // Construct the Location header
     // e.g. Location: user@remote#server.ivc.cx/#c1,c2
     const userRemote = user.includes('@') ? user : `${user}@${req.ip || 'remote'}`;
-    
+
     // Ensure the Location header does not contain invalid characters (e.g. ∆)
     const locationHeader = `${userRemote}#${host}${channels}`;
     res.setHeader('Location', encodeURI(locationHeader));
@@ -157,8 +157,7 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~') &&
-      !fullyDecodedPath.startsWith('/£')
+      !fullyDecodedPath.startsWith('/~')
     ) {
       return next();
     }
@@ -183,7 +182,7 @@ async function startServer() {
     // 2. Cryptographic Signature Verification
     // message format: timestamp:method:path:body
     const message = `${timestamp}:${req.method}:${req.path}:${req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : ''}`;
-    
+
     try {
       const msgUint8 = new TextEncoder().encode(message);
       const sigUint8 = new Uint8Array(Buffer.from(signatureBase64, 'base64'));
@@ -199,7 +198,7 @@ async function startServer() {
     // 3. Trust-On-First-Use (TOFU) Identity Registry
     if (!userRegistry.has(baseUser)) {
       userRegistry.set(baseUser, pubKeyBase64);
-      
+
       // The very first user to register on the node becomes the superadmin (+oa)
       if (userRegistry.size === 1) {
         userModesRegistry.set(baseUser, new Set(['o', 'a']));
@@ -229,20 +228,20 @@ async function startServer() {
   app.post("/api/chat", async (req, res) => {
     try {
       const { messages, systemInstruction, model } = req.body;
-      
+
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         return res.status(500).json({ error: "GEMINI_API_KEY is not set on the server." });
       }
 
-      const ai = new GoogleGenAI({ 
+      const ai = new GoogleGenAI({
         apiKey,
         httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
       });
 
       // Default to 3.7-flash if not provided or valid
       const selectedModel = model || 'gemini-3.7-flash';
-      
+
       // Convert standard chat message format to Gemini format
       // Note: First message must be 'user'. Alternating user/model.
       const contents = messages.map((m: any) => ({
@@ -270,7 +269,7 @@ async function startServer() {
   // ==========================================
   // IVC Network API Integration (Foreign Service)
   // ==========================================
-  
+
   // SSE Clients
   let sseClients: express.Response[] = [];
 
@@ -291,8 +290,8 @@ async function startServer() {
   });
 
   app.get("/api/ivc/status", (req, res) => {
-    res.json({ 
-      service: "NOTIFYBOT", 
+    res.json({
+      service: "NOTIFYBOT",
       status: "online",
       clients_connected: sseClients.length
     });
@@ -302,18 +301,18 @@ async function startServer() {
   // e.g. { "action": "execute", "service_name": "NOTIFYBOT", "sender": "CyberFox", "command": "NOTIFY jakeuse@pm.me Hello | World" }
   app.post("/api/ivc/execute", (req, res) => {
     const { action, service_name, sender, command } = req.body;
-    
+
     if (action === "execute") {
       console.log(`[IVC API] Received command from ${sender}: ${command}`);
-      
+
       // Bridge the command to the React frontend via Server-Sent Events (SSE)
       // The frontend holds the Gmail OAuth token and will execute the send with user confirmation.
       // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
       const eventPayload = `data: ${JSON.stringify({ type: 'ivc_command', sender, command })}\n\n`;
       sseClients.forEach(c => c.write(eventPayload));
-      
-      res.json({ 
-        status: "dispatched", 
+
+      res.json({
+        status: "dispatched",
         message: "Command sent to active frontend clients for processing."
       });
     } else {
@@ -380,7 +379,7 @@ async function startServer() {
     }
 
     const myEndpoint = process.env.APP_URL ? `${process.env.APP_URL}/api/ivc/execute` : `http://localhost:${PORT}/api/ivc/execute`;
-    
+
     try {
       const response = await fetch(`${ivc_host}/api/services.php`, {
         method: "POST",
@@ -409,12 +408,12 @@ async function startServer() {
   // ==========================================
   app.get(/^\/\+users$/, (req, res) => {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
-    
+
     // Check if the user string contains +a (Admin)
     if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.' 
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.'
       });
     }
 
@@ -441,12 +440,12 @@ async function startServer() {
   app.get(/^\/\+$/, (req, res) => {
     // Requires Admin (+a) privilege
     const ivcUser = req.headers['x-ivc-user'] as string || '';
-    
+
     // Check if the user string contains +a (e.g. @jake+a)
     if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.' 
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'This endpoint requires Admin (+a) privileges. Supply X-IVC-User header.'
       });
     }
 
@@ -468,17 +467,17 @@ async function startServer() {
   // ==========================================
   const handleServerModeChange = (req: any, res: any, action: 'add' | 'remove') => {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
-    
+
     // Require +a (Admin) to change global server modes
     if (!ivcUser.includes('+') || !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a')) {
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'This endpoint requires Admin (+a) privileges to change global server modes. Supply X-IVC-User header.' 
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'This endpoint requires Admin (+a) privileges to change global server modes. Supply X-IVC-User header.'
       });
     }
 
     const modes = req.params[0];
-    
+
     // Update internal state
     for (const char of modes) {
       if (action === 'add') {
@@ -487,24 +486,24 @@ async function startServer() {
         globalServerModes.delete(char);
       }
     }
-    
+
     const activeModesStr = Array.from(globalServerModes).join('');
     console.log(`[IVC API] Global Server Mode Update: ${action === 'add' ? '+' : '-'}${modes} by ${ivcUser}. Current: +${activeModesStr}`);
-    
+
     saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
     // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
     const eventPayload = `data: ${JSON.stringify({
-      type: 'ivc_server_mode', 
+      type: 'ivc_server_mode',
       action: action,
-      modes: modes, 
+      modes: modes,
       active_modes: activeModesStr,
       sender: ivcUser
     })}\n\n`;
     sseClients.forEach(c => c.write(eventPayload));
 
-    res.json({ 
-      status: "global_modes_updated", 
+    res.json({
+      status: "global_modes_updated",
       modes: `${action === 'add' ? '+' : '-'}${modes}`,
       active_modes: `+${activeModesStr}`,
       action: action
@@ -520,18 +519,18 @@ async function startServer() {
   // ==========================================
   const handleTargetModeChange = (req: any, res: any, action: 'add' | 'remove') => {
     const ivcUser = req.headers['x-ivc-user'] as string || '';
-    
+
     // Require +o (Operator) or +a (Admin) to change modes
     if (!ivcUser.includes('+') || (!ivcUser.substring(ivcUser.indexOf('+') + 1).includes('o') && !ivcUser.substring(ivcUser.indexOf('+') + 1).includes('a'))) {
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'This endpoint requires Operator (+o) or Admin (+a) privileges. Supply X-IVC-User header.' 
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'This endpoint requires Operator (+o) or Admin (+a) privileges. Supply X-IVC-User header.'
       });
     }
 
     const modes = req.params[0];
     const target = decodeURIComponent(req.params[1]);
-    
+
     if (!targetModesState.has(target)) {
       targetModesState.set(target, new Set());
     }
@@ -547,23 +546,23 @@ async function startServer() {
 
     const activeModesStr = Array.from(currentModes).join('');
     console.log(`[IVC API] Mode Update: ${action === 'add' ? '+' : '-'}${modes} on ${target} by ${ivcUser}. Current: +${activeModesStr}`);
-    
+
     saveState(globalServerModes, targetModesState, userRegistry, userModesRegistry);
 
     // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
     const eventPayload = `data: ${JSON.stringify({
-      type: 'ivc_mode_update', 
+      type: 'ivc_mode_update',
       action: action,
-      modes: modes, 
+      modes: modes,
       active_modes: activeModesStr,
       target: target,
       sender: ivcUser
     })}\n\n`;
     sseClients.forEach(c => c.write(eventPayload));
 
-    res.json({ 
-      status: "modes_updated", 
-      target: target, 
+    res.json({
+      status: "modes_updated",
+      target: target,
       modes: `${action === 'add' ? '+' : '-'}${modes}`,
       active_modes: `+${activeModesStr}`,
       action: action
@@ -589,21 +588,13 @@ async function startServer() {
       return next();
     }
 
-    const validSymbols = ['+', '-', '#', '@', '$', '§', '∆', '~', '£'];
-    if (!validSymbols.some(sym => channelRaw.startsWith(sym))) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid routing symbol."
-      });
-    }
-
     if (channelRaw.startsWith('/')) {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
     }
-    
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
@@ -615,9 +606,9 @@ async function startServer() {
       // Broadcast as a server mode update
       // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
       const eventPayload = `data: ${JSON.stringify({
-        type: 'ivc_server_mode', 
-        modes: modes, 
-        payload: payload 
+        type: 'ivc_server_mode',
+        modes: modes,
+        payload: payload
       })}\n\n`;
       sseClients.forEach(c => c.write(eventPayload));
 
@@ -643,8 +634,8 @@ async function startServer() {
     // Broadcast the post to all connected SSE clients
     // ⚡ Bolt: Cache serialized JSON outside broadcast loop to avoid O(n) redundant stringifications
     const eventPayload = `data: ${JSON.stringify({
-      type: 'ivc_post', 
-      channel: channelRaw, 
+      type: 'ivc_post',
+      channel: channelRaw,
       payload: payload,
       sender: ivcUser
     })}\n\n`;
@@ -656,7 +647,7 @@ async function startServer() {
   // ==========================================
   // Vite Middleware for Frontend
   // ==========================================
-  
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
