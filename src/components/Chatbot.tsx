@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, X, Maximize2, Minimize2, Settings, MessageSquare } from 'lucide-react';
+import { Send, Bot, X, Maximize2, Minimize2, Settings, MessageSquare, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 type Message = {
@@ -182,7 +182,7 @@ export function Chatbot() {
             className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0"
             aria-label="Send message"
           >
-            <Send className="w-5 h-5" />
+            {isLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>
         <p className="text-[10px] text-slate-400 text-center mt-2">
