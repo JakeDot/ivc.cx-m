@@ -7,6 +7,27 @@ type Message = {
   content: string;
 };
 
+// ⚡ Bolt: Memoize the individual message component.
+// Without this, the ReactMarkdown component (which is expensive to render)
+// would re-parse and re-render every single previous message in the chat history
+// on every single keystroke as the user types in the textarea (because the parent
+// Chatbot component's state updates).
+const MessageItem = React.memo(({ msg }: { msg: Message }) => {
+  return (
+    <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'}`}>
+        {msg.role === 'assistant' ? (
+          <div className="markdown-body prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 prose-pre:text-slate-800">
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap">{msg.content}</p>
+        )}
+      </div>
+    </div>
+  );
+});
+
 const MODELS = [
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (General Tasks)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Complex Tasks)' },
@@ -136,17 +157,7 @@ export function Chatbot() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'}`}>
-              {msg.role === 'assistant' ? (
-                <div className="markdown-body prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 prose-pre:text-slate-800">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              )}
-            </div>
-          </div>
+          <MessageItem key={i} msg={msg} />
         ))}
         {isLoading && (
           <div className="flex justify-start">
