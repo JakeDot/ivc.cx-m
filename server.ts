@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -592,6 +593,15 @@ async function startServer() {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
+
+    // Require all direct channel postings to use a valid routing symbol
+    // This prevents bypassing ZTCIE middleware (which ignores plain paths)
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Channel must begin with a valid routing symbol (+, -, #, @, $, §, ∆, ~, £)."
       });
     }
     
