@@ -1,3 +1,6 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+## 2025-05-19 - Missing Loading States for Async Operations
+**Learning:** Noticed several submit and action buttons (`App.tsx`, `ChannelLandingPage.tsx`, `ModeManagerModal.tsx`) perform async API requests without visual loading states. While some had text changes ("Sending..."), they lacked visual spinners. Additionally, `ModeManagerModal` buttons did not disable during the requests.
+**Action:** Always add `<RefreshCw className="... animate-spin" />` or similar standard loading spinners to async buttons, and ensure `disabled` state is mapped to `isLoading` or equivalent pending state to prevent duplicate submissions and clarify system state.

@@ -1,0 +1,28 @@
+--- src/components/ModeManagerModal.tsx
++++ src/components/ModeManagerModal.tsx
+@@ -145,10 +145,10 @@
+              </div>
+              <button
+                 onClick={applyModes}
+                 disabled={status?.includes('Applying')}
+                 className="w-full py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+-                {status?.includes('Applying Target Modes') || status === 'Applying (Secured by Ed25519)...' ?
++                {status?.includes('Applying (Secured by Ed25519)') ?
+                   <><RefreshCw className="w-4 h-4 animate-spin" /> Applying...</> :
+                   <><Check className="w-4 h-4" /> Apply to Target</>
+                 }
+              </button>
+@@ -172,11 +172,11 @@
+              </div>
+              <button
+                 onClick={applyGlobalServerModes}
+-                disabled={status?.includes('Applying Global Modes')}
++                disabled={status?.includes('Applying')}
+                 className="w-full py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                 {status?.includes('Applying Global Modes') ?
+                   <><RefreshCw className="w-4 h-4 animate-spin" /> Applying...</> :
+                   <><Check className="w-4 h-4" /> Apply Globally</>
+                 }
+              </button>
