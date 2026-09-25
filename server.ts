@@ -271,7 +271,9 @@ async function startServer() {
   // ==========================================
   
   // SSE Clients
-  let sseClients: express.Response[] = [];
+  // ⚡ Bolt: Using Set instead of Array for active server connections
+  // to ensure O(1) removal on disconnects and avoid O(N) memory churn.
+  const sseClients = new Set<express.Response>();
 
   // Frontend connects here to receive real-time commands from the IVC Network
   app.get("/api/ivc/stream", (req, res) => {
@@ -280,12 +282,12 @@ async function startServer() {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    sseClients.push(res);
-    console.log(`[SSE] Client connected. Total: ${sseClients.length}`);
+    sseClients.add(res);
+    console.log(`[SSE] Client connected. Total: ${sseClients.size}`);
 
     req.on("close", () => {
-      sseClients = sseClients.filter(c => c !== res);
-      console.log(`[SSE] Client disconnected. Total: ${sseClients.length}`);
+      sseClients.delete(res);
+      console.log(`[SSE] Client disconnected. Total: ${sseClients.size}`);
     });
   });
 
@@ -293,7 +295,7 @@ async function startServer() {
     res.json({ 
       service: "NOTIFYBOT", 
       status: "online",
-      clients_connected: sseClients.length
+      clients_connected: sseClients.size
     });
   });
 
@@ -455,7 +457,7 @@ async function startServer() {
         max_users_limit: 100,
         slowmode_delay: 5,
         network_status: 'stable',
-        connected_clients: sseClients.length
+        connected_clients: sseClients.size
       },
       requested_by: ivcUser,
       timestamp: new Date().toISOString()
