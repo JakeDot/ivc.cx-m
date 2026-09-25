@@ -599,6 +599,13 @@ async function startServer() {
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
 
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Channel must start with a valid routing symbol (+, -, #, @, $, §, ∆, ~, £)."
+      });
+    }
+
     if (channelRaw.startsWith('+')) {
       const modes = channelRaw.substring(1); // e.g. 'xyz'
       console.log(`[IVC API] Direct POST to apply server modes: +${modes}`, payload);
