@@ -23,14 +23,14 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
       setStatus('Applying (Secured by Ed25519)...');
       const uri = `/${action === 'add' ? '+' : '-'}${modes}/${encodeURIComponent(target)}`;
       const reqMethod = action === 'add' ? 'PUT' : 'DELETE';
-      
+
       const res = await fetch(uri, {
         method: reqMethod,
         headers: {
           ...ivcIdentity.getAuthHeaders(reqMethod, uri)
         }
       });
-      
+
       const data = await res.json();
       if (!res.ok) {
         setStatus(`Error: ${data.message || data.error}`);
@@ -47,14 +47,14 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
       setStatus('Applying Global Modes (Secured by Ed25519)...');
       const uri = `/${action === 'add' ? '+' : '-'}${modes}`;
       const reqMethod = action === 'add' ? 'PUT' : 'DELETE';
-      
+
       const res = await fetch(uri, {
         method: reqMethod,
         headers: {
           ...ivcIdentity.getAuthHeaders(reqMethod, uri)
         }
       });
-      
+
       const data = await res.json();
       if (!res.ok) {
         setStatus(`Error: ${data.message || data.error}`);
@@ -83,16 +83,16 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
             <X className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-2 gap-4">
              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Key className="w-3.5 h-3.5 text-indigo-500" /> Cryptographic Identity</label>
                 <div className="flex border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
                   <div className="bg-slate-100 px-3 py-2 text-sm text-slate-500 font-medium border-r border-slate-300">@</div>
-                  <input 
-                    type="text" 
-                    value={asUser} 
+                  <input
+                    type="text"
+                    value={asUser}
                     onChange={(e) => handleUpdateUsername(e.target.value)}
                     className="w-full bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none"
                     placeholder="username"
@@ -102,11 +102,11 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                   PubKey: {ivcIdentity.getPublicKeyBase64()}
                 </p>
              </div>
-             
+
              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> Action</label>
-                <select 
-                  value={action} 
+                <select
+                  value={action}
                   onChange={(e: any) => setAction(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 >
@@ -124,9 +124,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
              <div className="grid grid-cols-2 gap-4 mb-4">
                <div>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Target URI</label>
-                  <input 
-                    type="text" 
-                    value={target} 
+                  <input
+                    type="text"
+                    value={target}
                     onChange={(e) => setTarget(e.target.value)}
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="#general"
@@ -134,9 +134,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                </div>
                <div>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Modes (e.g. m, i, o)</label>
-                  <input 
-                    type="text" 
-                    value={modes} 
+                  <input
+                    type="text"
+                    value={modes}
                     onChange={(e) => setModes(e.target.value)}
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="m"
@@ -148,7 +148,7 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                 disabled={status?.includes('Applying')}
                 className="w-full py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {status?.includes('Applying (Secured by Ed25519)') ?
+                {status?.includes('Applying Target Modes') || status === 'Applying (Secured by Ed25519)...' ?
                   <><RefreshCw className="w-4 h-4 animate-spin" /> Applying...</> :
                   <><Check className="w-4 h-4" /> Apply to Target</>
                 }
@@ -162,9 +162,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
              </h3>
              <div className="mb-4">
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Global Modes (e.g. x, y)</label>
-                  <input 
-                    type="text" 
-                    value={modes} 
+                  <input
+                    type="text"
+                    value={modes}
                     onChange={(e) => setModes(e.target.value)}
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="x"
@@ -172,7 +172,7 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
              </div>
              <button
                 onClick={applyGlobalServerModes}
-                disabled={status?.includes('Applying')}
+                disabled={status?.includes('Applying Global Modes')}
                 className="w-full py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status?.includes('Applying Global Modes') ?

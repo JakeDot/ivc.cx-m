@@ -11,7 +11,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   let type = 'unknown';
   let name = channelRaw;
   let Icon = Hash;
@@ -65,7 +65,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
   useEffect(() => {
     // Clear messages when channel changes
     setMessages([]);
-    
+
     // Subscribe to SSE
     const unsubscribe = ivcClient.addListener((msg) => {
       // Decode channel names correctly if they are URL encoded by SSE server
@@ -94,7 +94,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
     try {
       const payload = { msg: inputText.trim() };
       const uri = `/${encodeURIComponent(channelRaw)}`;
-      
+
       const res = await fetch(uri, {
         method: 'POST',
         headers: {
@@ -103,7 +103,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
         },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
       if (!res.ok) {
         setErrorMsg(data.message || data.error || 'Failed to send message');
@@ -138,16 +138,16 @@ export function ChannelLandingPage({ path }: { path: string }) {
             <span>{ivcIdentity.getPublicKeyBase64().substring(0, 16)}...</span>
           </div>
         </div>
-        <a 
+        <a
           href="/"
           className="ml-4 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
         >
           Back to Hub
         </a>
       </header>
-      
+
       <div className="w-full max-w-4xl flex-1 flex flex-col p-4 md:p-6 h-[calc(100vh-80px)]">
-        <div 
+        <div
           ref={scrollRef}
           className="flex-1 bg-white border border-slate-200 rounded-t-2xl shadow-sm p-6 overflow-y-auto"
         >
@@ -163,7 +163,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
             <div className="space-y-4">
               {messages.map((msg, i) => {
                 const isMe = msg.sender === `@${ivcIdentity.username}` || msg.sender?.startsWith(`@${ivcIdentity.username}+`);
-                
+
                 return (
                   <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                     <div className="flex items-center gap-2 mb-1 px-1">
@@ -172,8 +172,8 @@ export function ChannelLandingPage({ path }: { path: string }) {
                       </span>
                     </div>
                     <div className={`px-4 py-2.5 rounded-2xl max-w-[80%] ${
-                      isMe 
-                        ? 'bg-indigo-600 text-white rounded-br-sm' 
+                      isMe
+                        ? 'bg-indigo-600 text-white rounded-br-sm'
                         : 'bg-slate-100 text-slate-800 rounded-bl-sm border border-slate-200'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap break-words">
@@ -186,29 +186,29 @@ export function ChannelLandingPage({ path }: { path: string }) {
             </div>
           )}
         </div>
-        
+
         <div className="bg-white border-x border-b border-slate-200 rounded-b-2xl p-4 shadow-sm">
           {errorMsg && (
             <div className="mb-3 p-3 bg-red-50 text-red-700 text-xs font-medium rounded-lg border border-red-200">
               {errorMsg}
             </div>
           )}
-          
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message ${channelRaw}...`}
               className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
               disabled={isSending}
             />
-            <button 
+            <button
               type="submit"
               disabled={!inputText.trim() || isSending}
               className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
             >
-              {isSending ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              <Send className="w-5 h-5" />
             </button>
           </form>
           <div className="mt-2 text-center">

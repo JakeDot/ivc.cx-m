@@ -4,7 +4,7 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
+import { Mail, RefreshCw, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
@@ -849,7 +849,10 @@ export default function App() {
                     className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                   >
                     {isSending ? (
-                      'Sending...'
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span>Sending...</span>
+                      </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
