@@ -1,3 +1,6 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+## 2023-10-24 - Async Button Loading States and Screen Reader Announcements
+**Learning:** Found that the primary "Send" button used a plain text "Sending..." state, which lacked visual feedback for the async operation. Additionally, decorative icons like `Send` lacked `aria-hidden="true"`, causing screen readers to potentially read out unnecessary information alongside the button text.
+**Action:** When adding or updating buttons with async operations, use the standard convention for loading states (`RefreshCw` icon with `animate-spin` class) instead of just plain text. Always add `aria-hidden="true"` to decorative icons within buttons so screen readers only announce the meaningful text.
