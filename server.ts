@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -592,6 +593,17 @@ async function startServer() {
       return res.status(403).json({
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
+      });
+    }
+
+    // SSRF / Auth Bypass Protection: Validate routing symbol
+    // Only allow posting to channels that begin with a valid IVC routing symbol.
+    // Without this, paths like '/general' skip ZTCIE middleware (which only triggers on valid symbols)
+    // but would be processed here, allowing unauthenticated messages.
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid channel format. Must begin with a valid routing symbol."
       });
     }
     
