@@ -1,3 +1,7 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+
+## 2023-10-25 - Modal Submit Buttons
+**Learning:** Found that the main form submission buttons inside the Mode Manager Modal lacked `disabled` state handling during API fetches, missing `aria-hidden` attributes for decorative inline icons, and missing explicit `type="button"` attributes which risks triggering unintended default submit actions. Also, the close button in the modal header was missing keyboard focus indicators (`focus-visible`).
+**Action:** Always verify that interactive buttons executing asynchronous tasks implement `disabled` logic, combine loading state UX correctly, attach `aria-hidden="true"` to accompanying decorative icons (like the Check/Refresh icons), and have appropriate keyboard navigation focus indicators.
