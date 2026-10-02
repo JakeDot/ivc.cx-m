@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Hash, User, Shield, FileText, Activity, Settings, UserCircle, ShieldAlert, Send, Key } from 'lucide-react';
+import { Hash, User, Shield, FileText, Activity, Settings, UserCircle, ShieldAlert, Send, Key, RefreshCw } from 'lucide-react';
 import { ivcClient, IvcMessage } from '../lib/ivcClient';
 import { ivcIdentity } from '../lib/ivcIdentity';
 
@@ -206,9 +206,10 @@ export function ChannelLandingPage({ path }: { path: string }) {
             <button 
               type="submit"
               disabled={!inputText.trim() || isSending}
+              aria-label="Send message"
               className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
             >
-              <Send className="w-5 h-5" />
+              {isSending ? <RefreshCw className="w-5 h-5 animate-spin" aria-hidden="true" /> : <Send className="w-5 h-5" aria-hidden="true" />}
             </button>
           </form>
           <div className="mt-2 text-center">
