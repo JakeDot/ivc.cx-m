@@ -4,7 +4,7 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
+import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
@@ -849,10 +849,13 @@ export default function App() {
                     className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                   >
                     {isSending ? (
-                      'Sending...'
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" aria-hidden="true" />
+                        <span>Sending...</span>
+                      </>
                     ) : (
                       <>
-                        <Send className="w-5 h-5" />
+                        <Send className="w-5 h-5" aria-hidden="true" />
                         <span>Send</span>
                       </>
                     )}
@@ -1029,7 +1032,7 @@ export default function App() {
                           disabled={isSending}
                           className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-1.5 px-3 rounded text-xs transition-colors disabled:opacity-50 flex justify-center items-center gap-1"
                         >
-                          <Send className="w-3 h-3" /> Send
+                          {isSending ? <><RefreshCw className="w-3 h-3 animate-spin" aria-hidden="true" /> Sending</> : <><Send className="w-3 h-3" aria-hidden="true" /> Send</>}
                         </button>
                         <button 
                           onClick={() => dismissPending(item.id)}
