@@ -9,3 +9,7 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+
+## 2024-05-18 - Prevent O(N) Chat Re-renders
+**Learning:** Frequent state updates (like typing in a chat interface) can trigger expensive O(N) re-renders when rendering complex elements (e.g., `ReactMarkdown`) inline within array mapping blocks.
+**Action:** Extract large mapping iterations to individual components and wrap them in `React.memo` to change complex re-renders to O(1) during parent state updates.
