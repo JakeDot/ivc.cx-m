@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -593,6 +594,14 @@ async function startServer() {
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
+    }
+
+    // SSRF Protection: Prevent Identity spoofing on standard channels.
+    // If the path doesn't begin with a recognized protected routing symbol,
+    // the request wasn't checked by ZTCIE middleware, so we must reset the user
+    // to prevent spoofing of X-IVC-User header for direct standard channel posts.
+    if (!/^[+\-#@$§∆~£]/.test(channelRaw)) {
+        req.headers['x-ivc-user'] = 'anonymous';
     }
     
     const payload = req.body;
