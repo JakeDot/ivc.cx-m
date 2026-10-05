@@ -4,7 +4,7 @@ import { initAuth, googleSignIn, logout } from './lib/firebase';
 import { sendEmail } from './lib/gmail';
 import { ivcClient } from './lib/ivcClient';
 import { parseIvcUri, registerProtocolHandler } from './lib/ivc-protocol';
-import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings } from 'lucide-react';
+import { Mail, LogOut, Send, AlertCircle, CheckCircle2, Network, Inbox, Server, Hash, User as UserIcon, Link, History, ListChecks, Save, FileText, Search, Calendar, BarChart3, Download, Eye, X, Clock, Play, Pause, Trash2, Users, Settings, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from 'react';
@@ -573,21 +573,21 @@ export default function App() {
             </span>
           </div>
           <div className="h-4 w-px bg-slate-300"></div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => setIsIvcModalOpen(true)}>
-            <Network className="w-3.5 h-3.5" />
+          <button type="button" className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1" onClick={() => setIsIvcModalOpen(true)}>
+            <Network className="w-3.5 h-3.5" aria-hidden="true" />
             <span>
               IVC Network: {ivcStatus === 'connecting' ? 'Connecting...' : ivcStatus === 'connected' ? 'Connected' : 'Offline'}
             </span>
             <div className={`w-2 h-2 rounded-full ml-1 ${ivcStatus === 'connected' ? 'bg-green-500' : ivcStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-400'}`}></div>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors" onClick={() => setIsUserRegistryOpen(true)}>
-            <Users className="w-3.5 h-3.5" />
+          </button>
+          <button type="button" className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1" onClick={() => setIsUserRegistryOpen(true)}>
+            <Users className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Users</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setIsModeModalOpen(true)}>
-            <Settings className="w-3.5 h-3.5" />
+          </button>
+          <button type="button" className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1" onClick={() => setIsModeModalOpen(true)}>
+            <Settings className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Manage Modes</span>
-          </div>
+          </button>
         </div>
         
         {user && !needsAuth && (
@@ -846,13 +846,16 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={isSending || !to || !subject || !body || (notifyType !== 'general' && notifyType !== 'server' && !eventMeta)}
-                    className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                    className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                   >
                     {isSending ? (
-                      'Sending...'
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" aria-hidden="true" />
+                        <span>Sending...</span>
+                      </>
                     ) : (
                       <>
-                        <Send className="w-5 h-5" />
+                        <Send className="w-5 h-5" aria-hidden="true" />
                         <span>Send</span>
                       </>
                     )}
