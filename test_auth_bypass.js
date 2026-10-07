@@ -12,6 +12,7 @@ async function testAuthBypass() {
     { path: '/%C2%A7test', expectedStatus: 401 }, // § is URL-encoded
     { path: '/%E2%88%86test', expectedStatus: 401 }, // ∆ is URL-encoded
     { path: '/~test', expectedStatus: 401 },
+    { path: '/%C2%A3test', expectedStatus: 401 }, // £ is URL-encoded
     { path: '/vite/asset', expectedStatus: 404 } // Unprotected route, returns 404 not 401
   ];
 
