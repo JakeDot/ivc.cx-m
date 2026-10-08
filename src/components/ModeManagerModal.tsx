@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Server, Hash, User, X, Check, Search, ShieldAlert, Zap, Key } from 'lucide-react';
+import { Shield, Server, Hash, User, X, Check, Search, ShieldAlert, Zap, Key, RefreshCw } from 'lucide-react';
 import { ivcIdentity } from '../lib/ivcIdentity';
 
 interface ModeManagerModalProps {
@@ -12,6 +12,8 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
   const [action, setAction] = useState<'add'|'remove'>('add');
   const [asUser, setAsUser] = useState(ivcIdentity.username);
   const [status, setStatus] = useState<string | null>(null);
+  const [isApplyingTarget, setIsApplyingTarget] = useState(false);
+  const [isApplyingGlobal, setIsApplyingGlobal] = useState(false);
 
   const handleUpdateUsername = (name: string) => {
     setAsUser(name);
@@ -20,6 +22,7 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
 
   const applyModes = async () => {
     try {
+      setIsApplyingTarget(true);
       setStatus('Applying (Secured by Ed25519)...');
       const uri = `/${action === 'add' ? '+' : '-'}${modes}/${encodeURIComponent(target)}`;
       const reqMethod = action === 'add' ? 'PUT' : 'DELETE';
@@ -39,11 +42,14 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
       }
     } catch (e: any) {
       setStatus(`Error: ${e.message}`);
+    } finally {
+      setIsApplyingTarget(false);
     }
   };
 
   const applyGlobalServerModes = async () => {
     try {
+      setIsApplyingGlobal(true);
       setStatus('Applying Global Modes (Secured by Ed25519)...');
       const uri = `/${action === 'add' ? '+' : '-'}${modes}`;
       const reqMethod = action === 'add' ? 'PUT' : 'DELETE';
@@ -63,6 +69,8 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
       }
     } catch (e: any) {
       setStatus(`Error: ${e.message}`);
+    } finally {
+      setIsApplyingGlobal(false);
     }
   };
 
@@ -143,8 +151,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                   />
                </div>
              </div>
-             <button onClick={applyModes} className="w-full py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" /> Apply to Target
+             <button onClick={applyModes} disabled={isApplyingTarget} className="w-full py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                {isApplyingTarget ? <RefreshCw className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Check className="w-4 h-4" aria-hidden="true" />}
+                {isApplyingTarget ? 'Applying...' : 'Apply to Target'}
              </button>
           </div>
 
@@ -163,8 +172,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                     placeholder="x"
                   />
              </div>
-             <button onClick={applyGlobalServerModes} className="w-full py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" /> Apply Globally
+             <button onClick={applyGlobalServerModes} disabled={isApplyingGlobal} className="w-full py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                {isApplyingGlobal ? <RefreshCw className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Check className="w-4 h-4" aria-hidden="true" />}
+                {isApplyingGlobal ? 'Applying...' : 'Apply Globally'}
              </button>
           </div>
 
