@@ -595,6 +595,13 @@ async function startServer() {
       });
     }
     
+    // 🛡️ Sentinel: Enforce anonymous identity for unprotected standard channels
+    // If the channel doesn't start with a protected IVC routing symbol, we must reset the user identity
+    // to prevent spoofing, since the cryptographic middleware didn't authenticate it.
+    if (!/^[#@$§∆~+\-]/.test(channelRaw)) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
