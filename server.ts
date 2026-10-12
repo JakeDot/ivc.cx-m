@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -596,7 +597,25 @@ async function startServer() {
     }
     
     const payload = req.body;
-    const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
+    let ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
+
+    // Extract actual channel name, stripping out any target modes like /+xyz/ or /-xyz/
+    let actualChannel = channelRaw;
+    if (actualChannel.startsWith('+') || actualChannel.startsWith('-')) {
+      const parts = actualChannel.split('/');
+      if (parts.length > 1) {
+        actualChannel = parts.slice(1).join('/'); // The actual channel is everything after the mode
+      }
+    }
+
+    // Prevent identity spoofing on unauthenticated standard channels
+    // The ZTCIE middleware ONLY authenticates channels starting with protected routing symbols.
+    // If a channel DOES NOT start with one of those symbols (e.g. standard string channel 'general'),
+    // it bypassed ZTCIE and any provided X-IVC-User header must be untrusted/reset.
+    if (!/^[#@$§∆~£]/.test(actualChannel) && !((actualChannel.startsWith('+') || actualChannel.startsWith('-')) && !actualChannel.includes('/'))) {
+      ivcUser = 'anonymous';
+    }
+
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
 
     if (channelRaw.startsWith('+')) {
