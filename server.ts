@@ -594,6 +594,20 @@ async function startServer() {
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
     }
+
+    // Determine the base channel for routing (strip out target modes like +mode/ or -mode/)
+    let baseChannel = channelRaw;
+    if ((channelRaw.startsWith('+') || channelRaw.startsWith('-')) && channelRaw.includes('/')) {
+      baseChannel = channelRaw.substring(channelRaw.indexOf('/') + 1);
+    }
+
+    // Prevent identity spoofing on unauthenticated standard channels
+    // Valid protected routing symbols that go through ZTCIE are #, @, $, §, ∆, ~
+    // We do NOT include + or - here because baseChannel already stripped target mode prefixes,
+    // so a base channel of '+spoof' should be treated as an unauthenticated standard channel.
+    if (!/^[#@$§∆~]/.test(baseChannel)) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
     
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
