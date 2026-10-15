@@ -87,10 +87,11 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-2 gap-4">
              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Key className="w-3.5 h-3.5 text-indigo-500" /> Cryptographic Identity</label>
+                <label htmlFor="crypto-identity" className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Key className="w-3.5 h-3.5 text-indigo-500" /> Cryptographic Identity</label>
                 <div className="flex border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
                   <div className="bg-slate-100 px-3 py-2 text-sm text-slate-500 font-medium border-r border-slate-300">@</div>
                   <input 
+                    id="crypto-identity"
                     type="text" 
                     value={asUser} 
                     onChange={(e) => handleUpdateUsername(e.target.value)}
@@ -104,8 +105,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
              </div>
              
              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> Action</label>
+                <label htmlFor="mode-action" className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> Action</label>
                 <select 
+                  id="mode-action"
                   value={action} 
                   onChange={(e: any) => setAction(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -123,8 +125,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
              </h3>
              <div className="grid grid-cols-2 gap-4 mb-4">
                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1 block">Target URI</label>
+                  <label htmlFor="target-uri" className="text-xs font-medium text-slate-600 mb-1 block">Target URI</label>
                   <input 
+                    id="target-uri"
                     type="text" 
                     value={target} 
                     onChange={(e) => setTarget(e.target.value)}
@@ -133,8 +136,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                   />
                </div>
                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1 block">Modes (e.g. m, i, o)</label>
+                  <label htmlFor="target-modes" className="text-xs font-medium text-slate-600 mb-1 block">Modes (e.g. m, i, o)</label>
                   <input 
+                    id="target-modes"
                     type="text" 
                     value={modes} 
                     onChange={(e) => setModes(e.target.value)}
@@ -154,8 +158,9 @@ export function ModeManagerModal({ onClose }: ModeManagerModalProps) {
                 Global Server Modes
              </h3>
              <div className="mb-4">
-                  <label className="text-xs font-medium text-slate-600 mb-1 block">Global Modes (e.g. x, y)</label>
+                  <label htmlFor="global-modes" className="text-xs font-medium text-slate-600 mb-1 block">Global Modes (e.g. x, y)</label>
                   <input 
+                    id="global-modes"
                     type="text" 
                     value={modes} 
                     onChange={(e) => setModes(e.target.value)}
