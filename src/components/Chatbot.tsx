@@ -7,6 +7,11 @@ type Message = {
   content: string;
 };
 
+// ⚡ Bolt: Memoize the markdown renderer to prevent O(N) re-parsing on every keystroke
+const MemoizedMarkdown = React.memo(({ content }: { content: string }) => (
+  <ReactMarkdown>{content}</ReactMarkdown>
+));
+
 const MODELS = [
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (General Tasks)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Complex Tasks)' },
@@ -140,7 +145,7 @@ export function Chatbot() {
             <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'}`}>
               {msg.role === 'assistant' ? (
                 <div className="markdown-body prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 prose-pre:text-slate-800">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <MemoizedMarkdown content={msg.content} />
                 </div>
               ) : (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
