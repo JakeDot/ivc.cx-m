@@ -114,12 +114,12 @@ async function startServer() {
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
       // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -595,6 +596,20 @@ async function startServer() {
       });
     }
     
+    // Security: Prevent identity spoofing on unauthenticated standard channels.
+    // If the path isn't protected by ZTCIE, we explicitly reset the claimed user identity
+    // to 'anonymous' to prevent users from bypassing authentication.
+    let baseChannel = channelRaw;
+    if (baseChannel.startsWith('+') || baseChannel.startsWith('-')) {
+      const parts = baseChannel.split('/');
+      if (parts.length > 1) {
+        baseChannel = parts.slice(1).join('/');
+      }
+    }
+    if (!/^[#@$§∆~£]/.test(baseChannel)) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
