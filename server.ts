@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -593,6 +594,21 @@ async function startServer() {
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
+    }
+
+    // Strip target mode prefixes (+mode/ or -mode/) to get the true base channel
+    let baseChannel = channelRaw;
+    if (baseChannel.startsWith('+') || baseChannel.startsWith('-')) {
+      const parts = baseChannel.split('/');
+      if (parts.length > 1) {
+        baseChannel = parts.slice(1).join('/');
+      }
+    }
+
+    // If the base channel does not start with a recognized protected symbol, it's unauthenticated.
+    // Explicitly reset the identity to 'anonymous' to prevent identity spoofing.
+    if (!/^[#@$§∆~£]/.test(baseChannel)) {
+      req.headers['x-ivc-user'] = 'anonymous';
     }
     
     const payload = req.body;
