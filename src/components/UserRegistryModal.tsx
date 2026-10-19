@@ -85,11 +85,11 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={fetchUsers} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors" aria-label="Refresh Users">
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <button onClick={fetchUsers} type="button" className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none" aria-label="Refresh Users">
+              <RefreshCw aria-hidden="true" className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors" aria-label="Close Modal">
-              <X className="w-4 h-4" />
+            <button onClick={onClose} type="button" className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none" aria-label="Close Modal">
+              <X aria-hidden="true" className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -146,21 +146,30 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                         <div className="flex justify-end gap-1.5">
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'o')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            type="button"
+                            aria-label={u.modes.includes('o') ? 'Remove Operator mode' : 'Add Operator mode'}
+                            aria-pressed={u.modes.includes('o')}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Operator"
                           >
                             {u.modes.includes('o') ? '-o' : '+o'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'a')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            type="button"
+                            aria-label={u.modes.includes('a') ? 'Remove Admin mode' : 'Add Admin mode'}
+                            aria-pressed={u.modes.includes('a')}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Admin"
                           >
                             {u.modes.includes('a') ? '-a' : '+a'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'v')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            type="button"
+                            aria-label={u.modes.includes('v') ? 'Remove Voice mode' : 'Add Voice mode'}
+                            aria-pressed={u.modes.includes('v')}
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Voice"
                           >
                             {u.modes.includes('v') ? '-v' : '+v'}
