@@ -1,3 +1,7 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+
+## 2025-05-18 - Clickable Divs Used for Header Actions
+**Learning:** Found several top-level header actions (like "IVC Network", "Users", and "Manage Modes") implemented as `<div>` elements with `onClick` handlers. These lacked native keyboard accessibility (no focus states, not reachable via Tab) and had redundant `cursor-pointer` classes. Additionally, the decorative Lucide icons within them did not have `aria-hidden="true"`, causing unnecessary noise for screen readers.
+**Action:** When implementing clickable elements, always use semantic `<button type="button">` tags. This ensures native keyboard focus. Add custom `focus-visible` styles (e.g., `focus-visible:outline-none focus-visible:ring-2`) to provide a clear focus indicator, and ensure all decorative icons carry `aria-hidden="true"`.
