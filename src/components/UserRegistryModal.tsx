@@ -148,6 +148,8 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                             onClick={() => toggleMode(u.username, u.modes, 'o')}
                             className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Operator"
+                            aria-label={`Operator mode for ${u.username}`}
+                            aria-pressed={u.modes.includes('o')}
                           >
                             {u.modes.includes('o') ? '-o' : '+o'}
                           </button>
@@ -155,6 +157,8 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                             onClick={() => toggleMode(u.username, u.modes, 'a')}
                             className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Admin"
+                            aria-label={`Admin mode for ${u.username}`}
+                            aria-pressed={u.modes.includes('a')}
                           >
                             {u.modes.includes('a') ? '-a' : '+a'}
                           </button>
@@ -162,6 +166,8 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                             onClick={() => toggleMode(u.username, u.modes, 'v')}
                             className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                             title="Toggle Voice"
+                            aria-label={`Voice mode for ${u.username}`}
+                            aria-pressed={u.modes.includes('v')}
                           >
                             {u.modes.includes('v') ? '-v' : '+v'}
                           </button>

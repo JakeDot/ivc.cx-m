@@ -1,3 +1,7 @@
-## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
-**Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
-**Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+## 2024-10-22 - Found optimization
+**Learning:** Found chat performance issue
+**Action:** Used memo on react component
+
+## 2024-10-22 - Missing dynamic aria-labels on state toggles
+**Learning:** Cryptic state-toggling buttons like `+o` or `-o` lack contextual accessibility labels, making their purpose and active state unclear to screen reader users.
+**Action:** Implement a static `aria-label` along with a dynamic `aria-pressed` attribute based on their active state. Do not use dynamically changing aria-label on a toggle button.
