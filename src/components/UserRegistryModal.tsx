@@ -146,22 +146,28 @@ export function UserRegistryModal({ onClose }: UserRegistryModalProps) {
                         <div className="flex justify-end gap-1.5">
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'o')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                            title="Toggle Operator"
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 ${u.modes.includes('o') ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            title={u.modes.includes('o') ? "Remove Operator Mode" : "Add Operator Mode"}
+                            aria-label={u.modes.includes('o') ? "Remove Operator Mode" : "Add Operator Mode"}
+                            aria-pressed={u.modes.includes('o')}
                           >
                             {u.modes.includes('o') ? '-o' : '+o'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'a')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                            title="Toggle Admin"
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 ${u.modes.includes('a') ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            title={u.modes.includes('a') ? "Remove Admin Mode" : "Add Admin Mode"}
+                            aria-label={u.modes.includes('a') ? "Remove Admin Mode" : "Add Admin Mode"}
+                            aria-pressed={u.modes.includes('a')}
                           >
                             {u.modes.includes('a') ? '-a' : '+a'}
                           </button>
                           <button 
                             onClick={() => toggleMode(u.username, u.modes, 'v')}
-                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                            title="Toggle Voice"
+                            className={`px-2 py-1 text-xs font-medium rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 ${u.modes.includes('v') ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            title={u.modes.includes('v') ? "Remove Voice Mode" : "Add Voice Mode"}
+                            aria-label={u.modes.includes('v') ? "Remove Voice Mode" : "Add Voice Mode"}
+                            aria-pressed={u.modes.includes('v')}
                           >
                             {u.modes.includes('v') ? '-v' : '+v'}
                           </button>
