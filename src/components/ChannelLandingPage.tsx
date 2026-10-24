@@ -3,6 +3,29 @@ import { Hash, User, Shield, FileText, Activity, Settings, UserCircle, ShieldAle
 import { ivcClient, IvcMessage } from '../lib/ivcClient';
 import { ivcIdentity } from '../lib/ivcIdentity';
 
+// ⚡ Bolt: Memoize individual channel messages to prevent O(N) re-renders
+// and redundant component tree processing on every input keystroke in the parent form.
+const ChannelMessage = React.memo(({ msg, isMe }: { msg: IvcMessage; isMe: boolean }) => {
+  return (
+    <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+      <div className="flex items-center gap-2 mb-1 px-1">
+        <span className="text-xs font-bold text-slate-700">
+          {msg.sender || 'anonymous'}
+        </span>
+      </div>
+      <div className={`px-4 py-2.5 rounded-2xl max-w-[80%] ${
+        isMe
+          ? 'bg-indigo-600 text-white rounded-br-sm'
+          : 'bg-slate-100 text-slate-800 rounded-bl-sm border border-slate-200'
+      }`}>
+        <p className="text-sm whitespace-pre-wrap break-words">
+          {msg.payload?.msg || JSON.stringify(msg.payload)}
+        </p>
+      </div>
+    </div>
+  );
+});
+
 export function ChannelLandingPage({ path }: { path: string }) {
   // Remove leading slash
   const channelRaw = path.substring(1);
@@ -163,25 +186,7 @@ export function ChannelLandingPage({ path }: { path: string }) {
             <div className="space-y-4">
               {messages.map((msg, i) => {
                 const isMe = msg.sender === `@${ivcIdentity.username}` || msg.sender?.startsWith(`@${ivcIdentity.username}+`);
-                
-                return (
-                  <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                    <div className="flex items-center gap-2 mb-1 px-1">
-                      <span className="text-xs font-bold text-slate-700">
-                        {msg.sender || 'anonymous'}
-                      </span>
-                    </div>
-                    <div className={`px-4 py-2.5 rounded-2xl max-w-[80%] ${
-                      isMe 
-                        ? 'bg-indigo-600 text-white rounded-br-sm' 
-                        : 'bg-slate-100 text-slate-800 rounded-bl-sm border border-slate-200'
-                    }`}>
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {msg.payload?.msg || JSON.stringify(msg.payload)}
-                      </p>
-                    </div>
-                  </div>
-                );
+                return <ChannelMessage key={i} msg={msg} isMe={isMe} />;
               })}
             </div>
           )}
