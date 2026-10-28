@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -157,7 +157,8 @@ async function startServer() {
       !fullyDecodedPath.startsWith('/$') &&
       !fullyDecodedPath.startsWith('/§') &&
       !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !fullyDecodedPath.startsWith('/~') &&
+      !fullyDecodedPath.startsWith('/£')
     ) {
       return next();
     }
@@ -595,6 +596,19 @@ async function startServer() {
       });
     }
     
+    // Mitigate identity spoofing on unauthenticated standard IVC channels.
+    // Base channels must start with a protected symbol to retain a claimed identity header.
+    let baseChannel = channelRaw;
+    if (baseChannel.startsWith('+') || baseChannel.startsWith('-')) {
+      const parts = baseChannel.split('/');
+      if (parts.length > 1) {
+        baseChannel = parts[1];
+      }
+    }
+    if (!/^[#@$§∆~£]/.test(baseChannel)) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
+
     const payload = req.body;
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
