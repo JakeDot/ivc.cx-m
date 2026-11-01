@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -149,15 +149,24 @@ async function startServer() {
       // Ignore malformed URIs
     }
 
+    let baseChannelPath = fullyDecodedPath;
+    if (baseChannelPath.startsWith('/+') || baseChannelPath.startsWith('/-')) {
+      const slashIdx = baseChannelPath.indexOf('/', 1);
+      if (slashIdx !== -1) {
+        baseChannelPath = baseChannelPath.substring(slashIdx); // e.g. /#admin
+      }
+    }
+
     if (
-      !fullyDecodedPath.startsWith('/+') &&
-      !fullyDecodedPath.startsWith('/-') &&
-      !fullyDecodedPath.startsWith('/#') &&
-      !fullyDecodedPath.startsWith('/@') &&
-      !fullyDecodedPath.startsWith('/$') &&
-      !fullyDecodedPath.startsWith('/§') &&
-      !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !baseChannelPath.startsWith('/+') &&
+      !baseChannelPath.startsWith('/-') &&
+      !baseChannelPath.startsWith('/#') &&
+      !baseChannelPath.startsWith('/@') &&
+      !baseChannelPath.startsWith('/$') &&
+      !baseChannelPath.startsWith('/§') &&
+      !baseChannelPath.startsWith('/∆') &&
+      !baseChannelPath.startsWith('/~') &&
+      !baseChannelPath.startsWith('/£')
     ) {
       return next();
     }
@@ -218,6 +227,7 @@ async function startServer() {
     const actualModes = userModesRegistry.get(baseUser) || new Set();
     const modesStr = actualModes.size > 0 ? `+${Array.from(actualModes).join('')}` : '';
     req.headers['x-ivc-user'] = `@${baseUser}${modesStr}`;
+    (req as any).isAuthenticated = true;
 
     next();
   });
@@ -593,6 +603,12 @@ async function startServer() {
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
+    }
+
+    // SSRF / Identity Spoofing Protection:
+    // If the request bypassed ZTCIE crypto authentication, reset their identity to anonymous.
+    if (!(req as any).isAuthenticated) {
+      req.headers['x-ivc-user'] = 'anonymous';
     }
     
     const payload = req.body;
