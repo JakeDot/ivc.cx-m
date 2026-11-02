@@ -1,3 +1,6 @@
 ## 2025-05-18 - Destructive Actions and Icon Buttons in Scheduled Tasks
 **Learning:** Found that icon-only action buttons (like Delete and Pause) on scheduled tasks lacked `aria-label` attributes and keyboard focus indicators (`focus-visible`). Additionally, the destructive "Delete" action executed immediately without a confirmation prompt, which can lead to accidental data loss.
 **Action:** When adding or reviewing icon-only buttons, especially in list items or repetitive components, always ensure `aria-label` and `focus-visible` classes are present. For any destructive actions (like delete), ensure a confirmation mechanism (like `window.confirm`) is in place.
+## 2025-05-18 - Dynamic ARIA Labels for State-Toggling Buttons
+**Learning:** For cryptic state-toggling buttons (e.g., '+o' or '-o' modes), static titles or missing ARIA labels make it difficult for screen reader users to understand their purpose or current state. Also found that `aria-pressed` should not be used if the button's `aria-label` or text changes dynamically based on state, as it creates redundant or conflicting states for screen readers.
+**Action:** Implement dynamic `aria-label` and `title` attributes based on their active state to clarify action and ensure proper `focus-visible` classes are applied for keyboard accessibility. Avoid `aria-pressed` when label changes dynamically.
