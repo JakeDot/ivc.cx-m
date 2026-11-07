@@ -9,3 +9,7 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+
+## 2025-05-26 - React input lag from expensive list renders
+**Learning:** Combining high-frequency state updates (like text inputs in a chat) with rendering large lists of computationally expensive components (like `ReactMarkdown`) in the same component causes severe input lag. This happens because React re-renders the entire list on every keystroke, leading to an O(N) performance degradation as the list grows.
+**Action:** Always extract expensive list items into their own sub-components and wrap them in `React.memo()`. This prevents redundant re-renders of the expensive components on every keystroke and ensures the input remains responsive.
