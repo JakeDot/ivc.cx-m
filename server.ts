@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -149,15 +149,24 @@ async function startServer() {
       // Ignore malformed URIs
     }
 
+    let checkPath = fullyDecodedPath;
+    if (checkPath.startsWith('/+') || checkPath.startsWith('/-')) {
+      const parts = checkPath.split('/');
+      if (parts.length > 2) {
+        checkPath = '/' + parts.slice(2).join('/');
+      }
+    }
+
     if (
-      !fullyDecodedPath.startsWith('/+') &&
-      !fullyDecodedPath.startsWith('/-') &&
-      !fullyDecodedPath.startsWith('/#') &&
-      !fullyDecodedPath.startsWith('/@') &&
-      !fullyDecodedPath.startsWith('/$') &&
-      !fullyDecodedPath.startsWith('/§') &&
-      !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !checkPath.startsWith('/+') &&
+      !checkPath.startsWith('/-') &&
+      !checkPath.startsWith('/#') &&
+      !checkPath.startsWith('/@') &&
+      !checkPath.startsWith('/$') &&
+      !checkPath.startsWith('/§') &&
+      !checkPath.startsWith('/∆') &&
+      !checkPath.startsWith('/~') &&
+      !checkPath.startsWith('/£')
     ) {
       return next();
     }
@@ -218,6 +227,8 @@ async function startServer() {
     const actualModes = userModesRegistry.get(baseUser) || new Set();
     const modesStr = actualModes.size > 0 ? `+${Array.from(actualModes).join('')}` : '';
     req.headers['x-ivc-user'] = `@${baseUser}${modesStr}`;
+
+    (req as any).isAuthenticated = true;
 
     next();
   });
@@ -596,6 +607,11 @@ async function startServer() {
     }
     
     const payload = req.body;
+
+    if (!(req as any).isAuthenticated) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
+
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
 
