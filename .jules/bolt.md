@@ -9,3 +9,7 @@
 ## 2024-05-25 - Redundant serialization in event broadcasting
 **Learning:** Found an $O(n)$ performance bottleneck where `JSON.stringify` was being called inside an `sseClients.forEach` loop during Server-Sent Events (SSE) broadcasting. This resulted in the same exact payload being stringified redundantly for every single connected client, causing unnecessary CPU cycles and memory allocations that scale linearly with active connections.
 **Action:** Extract expensive and invariant data transformations (like `JSON.stringify`) out of loops that iterate over connection pools. Pre-compute the serialized payload once, store it in a variable, and write the static string to all clients.
+
+## 2025-05-26 - Expensive components in unmemoized lists causing input lag
+**Learning:** Rendering complex components like `ReactMarkdown` within an unmemoized mapping loop inside a component with rapidly updating state (like a controlled text input `onChange`) causes severe input lag. Every keystroke triggers an $O(N)$ re-render of all expensive markdown components.
+**Action:** Always extract expensive list items (like messages rendering markdown) into their own sub-components wrapped in `React.memo()`. This prevents redundant re-renders of the entire list when only unrelated state (like an input field) changes.
