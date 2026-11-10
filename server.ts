@@ -218,6 +218,7 @@ async function startServer() {
     const actualModes = userModesRegistry.get(baseUser) || new Set();
     const modesStr = actualModes.size > 0 ? `+${Array.from(actualModes).join('')}` : '';
     req.headers['x-ivc-user'] = `@${baseUser}${modesStr}`;
+    (req as any).isAuthenticated = true;
 
     next();
   });
@@ -596,6 +597,9 @@ async function startServer() {
     }
     
     const payload = req.body;
+    if (!(req as any).isAuthenticated) {
+      req.headers['x-ivc-user'] = 'anonymous';
+    }
     const ivcUser = req.headers['x-ivc-user'] as string || 'anonymous';
     const userModes = ivcUser.includes('+') ? ivcUser.substring(ivcUser.indexOf('+') + 1) : '';
 
