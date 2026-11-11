@@ -113,13 +113,13 @@ async function startServer() {
     const pathDecoded = decodeURIComponent(req.path);
     if (!pathDecoded.startsWith('/api/') && pathDecoded.length > 1) {
       const channelRaw = pathDecoded.substring(1);
-      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~)
-      if (/^[#@$§∆~]/.test(channelRaw)) {
+      // Only include it if it's a recognized channel type (starts with #, @, $, §, ∆, ~, £)
+      if (/^[#@$§∆~£]/.test(channelRaw)) {
         channels = `/${channelRaw}`;
       } else if (channelRaw.startsWith('+') || channelRaw.startsWith('-')) {
         // Target mode modifications e.g. /+xyz/#channel
         const parts = channelRaw.split('/');
-        if (parts.length > 1 && /^[#@$§∆~]/.test(parts[1])) {
+        if (parts.length > 1 && /^[#@$§∆~£]/.test(parts[1])) {
           channels = `/${parts[1]}`;
         }
       }
@@ -149,15 +149,27 @@ async function startServer() {
       // Ignore malformed URIs
     }
 
+    // Strip target mode prefix if present (e.g. /+xyz/#channel -> /#channel)
+    let basePath = fullyDecodedPath;
+    if (basePath.startsWith('/+') || basePath.startsWith('/-')) {
+      const parts = basePath.split('/');
+      if (parts.length > 2) {
+        basePath = '/' + parts.slice(2).join('/');
+      } else {
+        // Just a mode command (e.g. /+users) - keep as is to enforce ZTCIE
+      }
+    }
+
     if (
-      !fullyDecodedPath.startsWith('/+') &&
-      !fullyDecodedPath.startsWith('/-') &&
-      !fullyDecodedPath.startsWith('/#') &&
-      !fullyDecodedPath.startsWith('/@') &&
-      !fullyDecodedPath.startsWith('/$') &&
-      !fullyDecodedPath.startsWith('/§') &&
-      !fullyDecodedPath.startsWith('/∆') &&
-      !fullyDecodedPath.startsWith('/~')
+      !basePath.startsWith('/+') &&
+      !basePath.startsWith('/-') &&
+      !basePath.startsWith('/#') &&
+      !basePath.startsWith('/@') &&
+      !basePath.startsWith('/$') &&
+      !basePath.startsWith('/§') &&
+      !basePath.startsWith('/∆') &&
+      !basePath.startsWith('/~') &&
+      !basePath.startsWith('/£')
     ) {
       return next();
     }
@@ -218,6 +230,7 @@ async function startServer() {
     const actualModes = userModesRegistry.get(baseUser) || new Set();
     const modesStr = actualModes.size > 0 ? `+${Array.from(actualModes).join('')}` : '';
     req.headers['x-ivc-user'] = `@${baseUser}${modesStr}`;
+    (req as any).isAuthenticated = true;
 
     next();
   });
@@ -593,6 +606,10 @@ async function startServer() {
         error: "Forbidden",
         message: "Posting to reserved channels prefixed with '/' is not allowed."
       });
+    }
+
+    if (!(req as any).isAuthenticated) {
+      req.headers['x-ivc-user'] = 'anonymous';
     }
     
     const payload = req.body;
